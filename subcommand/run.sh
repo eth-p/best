@@ -72,7 +72,7 @@ runner_for_suite() {
 	# `run_suite` sends commands to a runner instance through FD4, and outputs messages through FD1.
 	# The complex FD redirections below enable this to happen.
 	exec 6>&1 5>&2
-	report < <(runner < <(exec 3>&1 1>&6; runner:load "$1" runner:test_setup; run_suite "$1"; runner:test_teardown))
+	report < <(runner < <(exec 3>&1 1>&6; runner:load "$1"; runner:test_setup; run_suite "$1"; runner:test_teardown))
 }
 
 
@@ -174,6 +174,12 @@ report_test() {
 
 report_test_success() {
 	printc "[%{RESULT_SUCCESS}PASS%{CLEAR}] %-16s :: %s%{CLEAR}\n" "$(test_name "$RESULT_TEST")" "$RESULT_TIME_DURATION"
+
+	# Print the STDOUT/STDERR if VERBOSE is enabled.
+	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
+		cat "$RESULT_FD1"
+		cat "$RESULT_FD2"
+	fi
 }
 
 report_test_skipped() {
