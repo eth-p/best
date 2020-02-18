@@ -35,7 +35,7 @@ assert() {
 #     assert_equal 2 2
 #
 assert_equal() {
-	assert [[ "$1" = "$2" ]]
+	assert [ "$1" = "$2" ]
 	return $?
 }
 
@@ -50,7 +50,7 @@ assert_equal() {
 #     assert_not_equal 1 2
 #
 assert_not_equal() {
-	assert [[ "$1" != "$2" ]]
+	assert [ "$1" != "$2" ]
 	return $?
 }
 
@@ -65,7 +65,7 @@ assert_not_equal() {
 #     assert_less 1 2
 #
 assert_less() {
-	assert [[ "$1" -lt "$2" ]]
+	assert [ "$1" -lt "$2" ]
 	return $?
 }
 
@@ -80,7 +80,7 @@ assert_less() {
 #     assert_less_or_equal 2 2
 #
 assert_less_or_equal() {
-	assert [[ "$1" -le "$2" ]]
+	assert [ "$1" -le "$2" ]
 	return $?
 }
 
@@ -95,7 +95,7 @@ assert_less_or_equal() {
 #     assert_greater 5 2
 #
 assert_greater() {
-	assert [[ "$1" -gt "$2" ]]
+	assert [ "$1" -gt "$2" ]
 	return $?
 }
 
@@ -110,6 +110,6 @@ assert_greater() {
 #     assert_greater_or_equal 2 2
 #
 assert_greater_or_equal() {
-	assert [[ "$1" -ge "$2" ]]
+	assert [ "$1" -ge "$2" ]
 	return $?
 }
