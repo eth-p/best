@@ -1,0 +1,11 @@
+# Developer
+.idea
+*.iml
+*.swp
+
+# System
+.DS_Store
+._*
+
+# Project
+/tmp
