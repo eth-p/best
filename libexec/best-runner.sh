@@ -4,18 +4,22 @@
 #
 # Repository: https://github.com/eth-p/best
 # Issues:     https://github.com/eth-p/best/issues
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal Functions:
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Prints the current time in milliseconds.
-if ! [[ "$(date +'%s%3N')" =~ N$ ]]; then
+if ! [[ "$(gdate +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
+	__best_time() {
+		gdate +'%s%3N'
+	}
+elif ! [[ "$(date +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
 	__best_time() {
 		date +'%s%3N'
 	}
 elif command -v python &>/dev/null; then
 	__best_time() {
+		# This is the slowest thing in test execution overhead.
 		python -c 'import time; import math; print int(math.floor(time.time() * 1000))'
 	}
 else
@@ -67,13 +71,26 @@ __best_repl_response() { :; }
 # ----------------------------------------------------------------------------------------------------------------------
 # Commands:
 # ----------------------------------------------------------------------------------------------------------------------
+
+# REPL: LOAD
+# Loads a file into the current process.
+#
+# Arguments:
+#     $1  [string]    -- The file to load.
+#
 __best_cmd_LOAD() {
-	source "$1"
-	if [[ $? -eq 0 ]]; then
+	# shellcheck disable=SC1090
+	if source "$1"; then
 		__best_repl_response "OK.\n"
 	fi
 }
 
+# REPL: EXEC_TEST
+# Execute a test function.
+#
+# Arguments:
+#     $1  [string]    -- The function to execute.
+#
 __best_cmd_EXEC_TEST() {
 	local test="$1"
 	local stdout="${TMPDIR}/$$.${test}.stdout"
@@ -100,6 +117,12 @@ __best_cmd_EXEC_TEST() {
 	printf "EXIT %d\n" "$status" 1>&3
 }
 
+# REPL: EXEC
+# Execute a regular function.
+#
+# Arguments:
+#     $1  [string]    -- The function to execute.
+#
 __best_cmd_EXEC() {
 	if type "$1" &>/dev/null; then
 		"$@" || {
@@ -113,10 +136,19 @@ __best_cmd_EXEC() {
 	fi
 }
 
+# REPL: SKIP
+# Skip a test.
+# This is basically just a fake EXEC_TEST.
+#
+# Arguments:
+#     $1  [string]    -- The test name.
+#
 __best_cmd_SKIP() {
 	printf "EXEC %s\nSKIP\nEXIT 0\n" "$1" 1>&3
 }
 
+# REPL: CLEANUP
+# Remove all temporary files created during this instance.
 __best_cmd_CLEANUP() {
 	local file
 	for file in "${__best_tempfiles[@]}"; do
@@ -127,6 +159,14 @@ __best_cmd_CLEANUP() {
 	__best_tempfiles=()
 }
 
+# REPL: SHOW
+# Show information about the last test.
+#
+# Arguments:
+#     $1  ["STATUS"]    -- The exit code of the last test.
+#     $1  ["STDOUT"]    -- The STDOUT of the last test.
+#     $1  ["STDERR"]    -- The STDERR of the last test.
+#
 __best_cmd_SHOW() {
 	case "$1" in
 		STATUS) echo "$__best_last_status" ;;

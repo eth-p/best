@@ -23,14 +23,13 @@ export BEST_RUNNER="${ROOT}/libexec/best-runner.sh"
 
 # Configurable:
 export BEST_BASH="${BEST_BASH:-${BASH}}"
-export BEST_TEST_LIB="${LIB}/test"
-export TEST_DIR="${ROOT}/test"
-export TEST_HOME="${TEST_HOME}"
-export TEST_PWD="${TEST_PWD}"
+export BEST_TEST_LIB="${BEST_TEST_LIB:-${LIB}/test}"
+export TEST_DIR="${TEST_DIR:-${ROOT}/test}"
+export TEST_HOME="${TEST_HOME:-${HOME}}"
+export TEST_PWD="${TEST_PWD:-${PWD}}"
 export TEST_PATH="${TEST_PATH:-${PATH}}"
-export TEST_TEMP="${TEST_TEMP}"
-export TEST_SHIM_DIR="${LIB}/shim"
-export TEST_SHIMS=""
+export TEST_TEMP="${TEST_TEMP:-${TMPDIR}}"
+export TEST_SHIM_DIR="${TEST_SHIM_DIR:-${LIB}/shim}"
 # ----------------------------------------------------------------------------------------------------------------------
 # Options:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -72,17 +71,4 @@ suite_files "${TEST_DIR}" "${OPT_SUITES[@]}" || exit $?
 # ----------------------------------------------------------------------------------------------------------------------
 # Main:
 # ----------------------------------------------------------------------------------------------------------------------
-
-TEST_TEMP="$ROOT/tmp"
-
 source "${ROOT}/subcommand/${SUBCOMMAND}.sh"
-
-
-#TEST_HOME="$(pwd)/test"
-#TEST_PWD="test"
-#
-#runner 3>&1 < <({
-#	runner:load generic.sh
-#	runner:run test_hi
-#})
-#

@@ -9,8 +9,6 @@ source "${LIB}/runner.sh"
 if [[ "${#SUITE_FILES[@]}" -eq 0 ]]; then
 	fatal_error "No test suites found."
 fi
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Functions:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -66,7 +64,6 @@ run_suite() {
 }
 
 runner_for_suite() {
-
 	# File descriptor table:
 	#   FD6: intermediate for writing to STDOUT
 	#   FD5: intermediate for writing to STDERR
