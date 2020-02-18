@@ -5,7 +5,17 @@
 # Issues:     https://github.com/eth-p/best/issues
 # ----------------------------------------------------------------------------------------------------------------------
 
-# This file contains a list of empty functions that serve no purpose during test execution.
-# The functions themselves will not be documented here.
-
-description() { :; }
+# Enables snapshot testing.
+# This will compare the STDOUT/STDERR of the test with a stored snapshot.
+#
+# Arguments:
+#     $1  ["stdout"]    -- The standard output snapshot will be compared.
+#     $1  ["stderr"]    -- The standard error snapshot will be compared.
+#
+# Example:
+#
+#     assert [[ 1 =~ world$ ]]
+#
+snapshot() {
+	__best_fn_snapshot "$1"
+}

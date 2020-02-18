@@ -117,7 +117,7 @@ suite_files() {
 
 	# Search for the suites.
 	if [[ "$#" -eq 1 ]]; then
-		for file in "${dir}"/*; do
+		for file in "${dir}"/*.sh; do
 			printvd "%{DEBUG}Using suite: %s%{CLEAR}\n" "$file"
 			SUITE_NAMES+=("$(suite_name "$file")")
 			SUITE_FILES+=("${file}")

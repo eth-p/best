@@ -51,7 +51,7 @@ run_test_maybe() {
 run_suite() {
 	# Set suite variables.
 	SUITE_FILE="$1"
-	SUITE_NAME="$(suite_name "$SUITE_FILE")"
+	SUITE_NAME=""
 
 	show_suite_name "$SUITE_NAME"
 
@@ -64,6 +64,8 @@ run_suite() {
 }
 
 runner_for_suite() {
+	SUITE_FILE="$1"
+
 	# File descriptor table:
 	#   FD6: intermediate for writing to STDOUT
 	#   FD5: intermediate for writing to STDERR
@@ -89,6 +91,9 @@ __report_interpreter_reset() {
 	RESULT_TIMER_END=''
 	RESULT_MESSAGE=''
 	RESULT_MESSAGE_DATA=()
+	RESULT_VERBOSE=''
+	RESULT_SNAPSHOT_STDOUT=false
+	RESULT_SNAPSHOT_STDERR=false
 }
 
 report() {
@@ -118,6 +123,12 @@ report() {
 			TIMER_END)     RESULT_TIMER_END="$data" ;;
 			FAIL_MSG)      RESULT_MESSAGE="$data" ;;
 			FAIL_MSG_DATA) RESULT_MESSAGE_DATA+=("$data") ;;
+			SNAPSHOT) {
+				case "$data" in
+					stdout) RESULT_SNAPSHOT_STDOUT=true ;;
+					stderr) RESULT_SNAPSHOT_STDERR=true ;;
+				esac
+			} ;;
 		esac
 	done
 
@@ -136,7 +147,35 @@ report() {
 	fi
 }
 
+verify_snapshot() {
+	local type="$1"
+	local output_file="$2"
+	local output_snapshot="$(printf "%s_snapshots/%s.%s" "${SUITE_FILE}" "$(sed 's/[^a-zA-Z]/_/' <<< "$RESULT_TEST")" "$type")"
+
+	if ! [[ -f "$output_snapshot" ]]; then
+		if [[ "$SNAPSHOT_GENERATE" = true ]]; then
+			if ! [[ -d "$(dirname "${output_snapshot}")" ]]; then
+				mkdir -p "$(dirname "${output_snapshot}")"
+			fi
+
+			cp "$output_file" "$output_snapshot"
+		else
+			RESULT_STATUS='FAIL'
+			RESULT_MESSAGE='Snapshot not generated. Use --snapshot:generate option.'
+			return
+		fi
+	fi
+
+	if ! diff="$(diff "$output_snapshot" "$output_file")"; then
+		RESULT_STATUS='FAIL'
+		RESULT_MESSAGE='Snapshot does not match.'
+		RESULT_VERBOSE="${RESULT_VERBOSE}$(printf "\n[[%s snapshot diff]]\n%s" "${type}" "${diff}")"
+		return
+	fi
+}
+
 verify_test() {
+	# Calculate the status (based on the exit code).
 	if [[ -z "$RESULT_STATUS" ]]; then
 		if [[ "$RESULT_EXIT" -eq 0 ]]; then
 			RESULT_STATUS='SUCCESS'
@@ -145,10 +184,22 @@ verify_test() {
 		fi
 	fi
 
+	# Calculate the duration taken.
 	if [[ "$RESULT_TIMER_BEGIN" -ne 0 ]]; then
 		RESULT_TIME_DURATION="$((RESULT_TIMER_END - RESULT_TIMER_BEGIN)) ms"
 	else
 		RESULT_TIME_DURATION=""
+	fi
+
+	# Compare snapshots, if applicable.
+	if [[ "$RESULT_STATUS" = "SUCCESS" ]]; then
+		if [[ "$RESULT_SNAPSHOT_STDOUT" = true ]]; then
+			verify_snapshot "stdout" "$RESULT_FD1"
+		fi
+
+		if [[ "$RESULT_SNAPSHOT_STDERR" = true ]]; then
+			verify_snapshot "stderr" "$RESULT_FD2"
+		fi
 	fi
 }
 
@@ -179,6 +230,7 @@ report_test_success() {
 	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
 		cat "$RESULT_FD1"
 		cat "$RESULT_FD2"
+		printf "%s" "${RESULT_VERBOSE}"
 	fi
 }
 
@@ -201,6 +253,9 @@ report_test_failure() {
 	if [[ "$VERBOSE" = true ]]; then
 		cat "$RESULT_FD1"
 		cat "$RESULT_FD2"
+		if [[ "${#RESULT_VERBOSE}" -ge 0 ]]; then
+			printf "%s\n" "${RESULT_VERBOSE}"
+		fi
 	fi
 }
 

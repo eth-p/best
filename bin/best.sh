@@ -44,17 +44,18 @@ OPT_SUITES=()
 OPT_ARGV=()
 while shiftopt; do
 	case "$OPT" in
-		'--suite')         shiftval; OPT_SUITES+=("$OPT_VAL") ;;
-		'--verbose')       VERBOSE=true ;;
-		'--VERBOSE')       VERBOSE=true; VERBOSE_EVERYTHING=true ;;
-		'--debug')         VERBOSE=true; DEBUG=true ;;
-		'--porcelain')     PORCELAIN="${OPT_VAL:-true}" ;;
-		'--list')          SUBCOMMAND='list' ;;
-		'--color')         printc_init true ;;
-		'--no-color')      printc_init false ;;
-		--)                OPT_ARGV+=("$@"); break ;;
-		-*)                fatal_error "unknown option '%s'" "$OPT" ;;
-		*)                 OPT_ARGV+=("$OPT") ;;
+		'--suite')             shiftval; OPT_SUITES+=("$OPT_VAL") ;;
+		'--verbose')           VERBOSE=true ;;
+		'--VERBOSE')           VERBOSE=true; VERBOSE_EVERYTHING=true ;;
+		'--debug')             VERBOSE=true; DEBUG=true ;;
+		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
+		'--list')              SUBCOMMAND='list' ;;
+		'--color')             printc_init true ;;
+		'--no-color')          printc_init false ;;
+		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;
+		--)                    OPT_ARGV+=("$@"); break ;;
+		-*)                    fatal_error "unknown option '%s'" "$OPT" ;;
+		*)                     OPT_ARGV+=("$OPT") ;;
 	esac
 done
 

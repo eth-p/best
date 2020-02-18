@@ -38,6 +38,11 @@ __best_fn_fail() {
 	printf "FAIL\n" 1>&3
 }
 
+# Prints a snapshot directive.
+__best_fn_snapshot() {
+	printf "SNAPSHOT %s\n" "$1" 1>&3
+}
+
 # Prints the reason behind a failure.
 #
 # Arguments:
