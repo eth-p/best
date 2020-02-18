@@ -109,10 +109,10 @@ __best_cmd_EXEC_TEST() {
 	__best_run "$1" \
 		1>"$stdout" \
 		2>"$stderr"
+	local status="$?"
 	printf "TIMER_END %d\n" "$(__best_time)"
 
 	# Print the exit status.
-	local status="$?"
 	__best_last_status="$status"
 	printf "EXIT %d\n" "$status" 1>&3
 }
@@ -199,7 +199,6 @@ if [[ -n "${BEST_TEST_LIB}" ]]; then
 else
 	__best_repl_response "WARNING: 'BEST_TEST_LIB' is not specified. Test libraries are missing.\n"
 fi
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # REPL:
