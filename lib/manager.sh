@@ -34,27 +34,31 @@ suite_tests_parse() {
 		| awk '
 			BEGIN {
 				n=-1
+				p=0
 				print "TESTS_NAME=()"
 				print "TESTS_DESCRIPTION=()"
 				print "TESTS_SNAPSHOT=()"
 			};
 			END { print "TESTS="(n+1) };
-			$2 == "()" { n++; print "TESTS_NAME["n"]=\""$1"\"" };
+			$2 == "()" { p=0 };
+			$2 == "()" && /^test([A-Z:_])/ { p=1; n++; print "TESTS_NAME["n"]=\""$1"\"" };
 			/^(    |\t)(description|snapshot).*/ {
-				var=toupper($1);
-				$1="";
-				val=$0;
+				if (p) {
+					var=toupper($1);
+					$1="";
+					val=$0;
 
-				while(match(val, "^[[:space:]]")) { val=substr(val, 2) }
-				while(match(val, ";$")) { val=substr(val, 1, length(val)-1) }
-				if (match(val, "^[\"'\'']")) { val=substr(val, 2) }
-				if (match(val, "[\"'\'']$")) { val=substr(val, 1, length(val)-1) }
+					while(match(val, "^[[:space:]]")) { val=substr(val, 2) }
+					while(match(val, ";$")) { val=substr(val, 1, length(val)-1) }
+					if (match(val, "^[\"'\'']")) { val=substr(val, 2) }
+					if (match(val, "[\"'\'']$")) { val=substr(val, 1, length(val)-1) }
 
-				# Bash escape.
-				gsub(/\\/, "\\\\", val)
-				gsub(/\$/, "\\$", val)
-				gsub(/"/, "\\\"", val)
-				print "TESTS_"var"["n"]=\""val"\""
+					# Bash escape.
+					gsub(/\\/, "\\\\", val)
+					gsub(/\$/, "\\$", val)
+					gsub(/"/, "\\\"", val)
+					print "TESTS_"var"["n"]=\""val"\""
+				}
 			};
 		'
 }
