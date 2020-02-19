@@ -193,16 +193,16 @@ if [[ -t 1 ]]; then
 fi
 
 # Load test libraries.
-if [[ -n "${BEST_TEST_LIB}" ]]; then
+if [[ -n "${TEST_LIB_DIR}" ]]; then
 	shopt -s nullglob
-	for __file in "${BEST_TEST_LIB}"/*; do
+	for __file in "${TEST_LIB_DIR}"/*; do
 		# shellcheck disable=SC1090
 		source "$__file"
 	done
 	shopt -u nullglob
 	unset __file
 else
-	__best_repl_response "WARNING: 'BEST_TEST_LIB' is not specified. Test libraries are missing.\n"
+	__best_repl_response "WARNING: 'TEST_LIB_DIR' is not specified. Test libraries are missing.\n"
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------

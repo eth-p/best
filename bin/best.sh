@@ -23,13 +23,15 @@ export BEST_RUNNER="${ROOT}/libexec/best-runner.sh"
 
 # Configurable:
 export BEST_BASH="${BEST_BASH:-${BASH}}"
-export BEST_TEST_LIB="${BEST_TEST_LIB:-${LIB}/test}"
-export TEST_DIR="${TEST_DIR:-${ROOT}/test}"
-export TEST_HOME="${TEST_HOME:-${HOME}}"
+
 export TEST_PWD="${TEST_PWD:-${PWD}}"
-export TEST_PATH="${TEST_PATH:-${PATH}}"
-export TEST_TEMP="${TEST_TEMP:-${TMPDIR}}"
+export TEST_ENV_PATH="${TEST_ENV_PATH:-${PATH}}"
+export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR}}"
+export TEST_ENV_HOME="${TEST_ENV_HOME:-${HOME}}"
+
+export TEST_LIB_DIR="${TEST_LIB_DIR:-${LIB}/test}"
 export TEST_SHIM_DIR="${TEST_SHIM_DIR:-${LIB}/shim}"
+export TEST_DIR="${PWD}/test"
 # ----------------------------------------------------------------------------------------------------------------------
 # Options:
 # ----------------------------------------------------------------------------------------------------------------------
