@@ -19,8 +19,9 @@ assert() {
 		return 0
 	fi
 
-	__best_fn_fail
-	__best_fn_fail_reason "Assertion failed: %s" "$*"
+	__best_ipc_send_test_result "FAIL"
+	__best_ipc_send_test_result_message "Assertion failed: %s"
+	__best_ipc_send_test_result_message_data "$*"
 	return 1
 }
 

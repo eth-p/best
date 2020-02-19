@@ -5,6 +5,8 @@
 # Issues:     https://github.com/eth-p/best/issues
 # ----------------------------------------------------------------------------------------------------------------------
 source "${LIB}/runner.sh"
+source "${LIB}/runner_report.sh"
+source "${LIB}/stat.sh"
 # ----------------------------------------------------------------------------------------------------------------------
 if [[ "${#SUITE_FILES[@]}" -eq 0 ]]; then
 	fatal_error "No test suites found."
@@ -12,9 +14,6 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 # Functions:
 # ----------------------------------------------------------------------------------------------------------------------
-show_suite_name() {
-	print_header "Test Suite: $1"
-}
 
 run_test() {
 	printvd "running: %s\n" "$TEST_NAME"
@@ -22,49 +21,36 @@ run_test() {
 }
 
 run_test_maybe() {
-	local skip=true
-
 	if [[ "${#RUN_TESTS[@]}" -eq 0 ]]; then
-		# If all tests are being run, we don't have to filter it.
-		skip=false
-	else
-		# If a subset of tests are run, we have to check if the test ID is within this subset.
-		local key
-		for key in "${!RUN_TESTS[@]}"; do
-			local test="${RUN_TESTS[$key]}"
-			if [[ "$TEST_ID" = "${RUN_TESTPREFIX}${test}" || "$TEST_ID" = "${test}" ]]; then
-				skip=false
-				RUN_TESTS=("${RUN_TESTS[@]/$key}")
-				break
-			fi
-		done
+		run_test
+		return $?
 	fi
 
-	# Run the test?
-	if [[ "$skip" != true ]]; then
-		run_test
-	else
-		runner:skip "$TEST_NAME"
-	fi
+	# If a subset of tests are run, we have to check if the test ID is within this subset.
+	local key
+	for key in "${!RUN_TESTS[@]}"; do
+		local test="${RUN_TESTS[$key]}"
+		if [[ "$TEST_ID" == "${RUN_TESTPREFIX}${test}" || "$TEST_ID" == "${test}" ]]; then
+			RUN_TESTS=("${RUN_TESTS[@]/$key/}")
+			run_test
+			return $?
+		fi
+	done
+
+	# We aren't running the test.
+	runner:skip "$TEST_NAME"
 }
 
 run_suite() {
-	# Set suite variables.
 	SUITE_FILE="$1"
-	SUITE_NAME=""
+	SUITE_NAME="$(suite_name "$SUITE_FILE")"
+
+	TOTAL_PASSED=0
+	TOTAL_FAILED=0
+	TOTAL_SKIPPED=0
+	TOTAL_IGNORED=0
 
 	show_suite_name "$SUITE_NAME"
-
-	# Run each test.
-	suite_tests load "$suite"
-	while suite_tests next; do
-		TEST_ID="${SUITE_NAME}:$(test_name "${TEST_NAME}")"
-		run_test_maybe
-	done
-}
-
-runner_for_suite() {
-	SUITE_FILE="$1"
 
 	# File descriptor table:
 	#   FD6: intermediate for writing to STDOUT
@@ -74,197 +60,157 @@ runner_for_suite() {
 	# `run_suite` sends commands to a runner instance through FD4, and outputs messages through FD1.
 	# The complex FD redirections below enable this to happen.
 	exec 6>&1 5>&2
-	report < <(runner < <(exec 3>&1 1>&6; runner:load "$1"; runner:test_setup; run_suite "$1"; runner:test_teardown))
+	parse_suite_report < <(runner < <({
+		exec 3>&1 1>&6
+		runner:load "$1"
+		runner:test_setup
+
+		# Call `run_test_maybe` for each test in the suite.
+		{
+			suite_tests load "$suite"
+			while suite_tests next; do
+				TEST_ID="${SUITE_NAME}:$(test_name "${TEST_NAME}")"
+				run_test_maybe
+			done
+		}
+
+		runner:test_teardown
+	}))
+
+	TOTAL_ALL="$((TOTAL_PASSED + TOTAL_FAILED + TOTAL_SKIPPED))"
+	show_suite_totals
 }
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Functions: Report
-# ----------------------------------------------------------------------------------------------------------------------
-__report_interpreter_reset() {
-	RESULT_TEST=''
-	RESULT_FD1=''
-	RESULT_FD2=''
-	RESULT_EXIT=''
-	RESULT_STATUS=''
-	RESULT_TIMER_BEGIN=''
-	RESULT_TIMER_END=''
-	RESULT_MESSAGE=''
-	RESULT_MESSAGE_DATA=()
-	RESULT_VERBOSE=''
-	RESULT_SNAPSHOT_STDOUT=false
-	RESULT_SNAPSHOT_STDERR=false
-}
-
-report() {
-	# Set the totals.
-	TOTAL_PASS=0
-	TOTAL_FAIL=0
-	TOTAL_SKIP=0
-
-	# Parse the runner's response text.
-	local command
-	local data
-	while read -r command data; do
-		printvd "runner response: %s %s\n" "$command" "$data"
-		case "$command" in
-			EXEC) {
-				report_test
-				__report_interpreter_reset
-				RESULT_TEST="$data"
-			} ;;
-
-			FD1)           RESULT_FD1="$data" ;;
-			FD2)           RESULT_FD2="$data" ;;
-			EXIT)          RESULT_EXIT="$data" ;;
-			FAIL)          RESULT_STATUS="FAIL" ;;
-			SKIP)          RESULT_STATUS="SKIP" ;;
-			TIMER_BEGIN)   RESULT_TIMER_BEGIN="$data" ;;
-			TIMER_END)     RESULT_TIMER_END="$data" ;;
-			FAIL_MSG)      RESULT_MESSAGE="$data" ;;
-			FAIL_MSG_DATA) RESULT_MESSAGE_DATA+=("$data") ;;
-			SNAPSHOT) {
-				case "$data" in
-					stdout) RESULT_SNAPSHOT_STDOUT=true ;;
-					stderr) RESULT_SNAPSHOT_STDERR=true ;;
-				esac
-			} ;;
-		esac
-	done
-
-	report_test
-
-	# Print the results.
-	TOTAL_ALL="$((TOTAL_PASS + TOTAL_FAIL + TOTAL_SKIP))"
-	if [[ "$TOTAL_ALL" -ge 0 ]]; then
-		printc "\nTotal Passed:  %{RESULT_SUCCESS}%d%{CLEAR} / %d\n" "${TOTAL_PASS}" "${TOTAL_ALL}"
-		printc "Total Skipped: %{RESULT_SKIPPED}%d%{CLEAR} / %d\n" "${TOTAL_SKIP}" "${TOTAL_ALL}"
-		printc "Total Failed:  %{RESULT_FAILURE}%d%{CLEAR} / %d\n" "${TOTAL_FAIL}" "${TOTAL_ALL}"
-	fi
-
-	if [[ "$TOTAL_FAIL" ]]; then
-		COMMAND_EXIT=1
-	fi
-}
-
-verify_snapshot() {
-	local type="$1"
-	local output_file="$2"
-	local output_snapshot="$(printf "%s_snapshots/%s.%s" "${SUITE_FILE}" "$(sed 's/[^a-zA-Z]/_/' <<< "$RESULT_TEST")" "$type")"
-
-	if ! [[ -f "$output_snapshot" ]]; then
-		if [[ "$SNAPSHOT_GENERATE" = true ]]; then
-			if ! [[ -d "$(dirname "${output_snapshot}")" ]]; then
-				mkdir -p "$(dirname "${output_snapshot}")"
-			fi
-
-			cp "$output_file" "$output_snapshot"
-		else
-			RESULT_STATUS='FAIL'
-			RESULT_MESSAGE='Snapshot not generated. Use --snapshot:generate option.'
-			return
+parse_suite_report() {
+	while runner_report; do
+		# Create decorations.
+		REPORT_DECORATIONS=()
+		REPORT_DECORATION_STRING=''
+		if [[ "$REPORT_TIMESTAMP_STARTED" -ne 0 ]]; then REPORT_DECORATIONS+=("${REPORT_DURATION} ms"); fi
+		if [[ "${#REPORT_DECORATIONS[@]}" -gt 0 ]]; then
+			REPORT_DECORATION_STRING=" ::$(printf " %s" "${REPORT_DECORATIONS[@]}")"
 		fi
-	fi
 
-	if ! diff="$(diff "$output_snapshot" "$output_file")"; then
-		RESULT_STATUS='FAIL'
-		RESULT_MESSAGE='Snapshot does not match.'
-		RESULT_VERBOSE="${RESULT_VERBOSE}$(printf "\n[[%s snapshot diff]]\n%s" "${type}" "${diff}")"
+		# Show the test report result.
+		case "$REPORT_RESULT" in
+			PASS)
+				RESULT_COLOR="%{RESULT_PASS}"
+				((TOTAL_PASSED++))                                     || true
+				show_passed_test
+				;;
+			SKIP)
+				RESULT_COLOR="%{RESULT_SKIP}"
+				((TOTAL_SKIPPED++))                                     || true
+				show_skipped_test
+				;;
+			FAIL | *)
+				RESULT_COLOR="%{RESULT_FAIL}"
+				((TOTAL_FAILED++))                                       || true
+				show_failed_test
+				;;
+		esac
+
+		# Delete the test output files.
+		if [[ -f "$REPORT_OUTPUT_STDOUT" ]]; then rm "$REPORT_OUTPUT_STDOUT"; fi
+		if [[ -f "$REPORT_OUTPUT_STDERR" ]]; then rm "$REPORT_OUTPUT_STDERR"; fi
+	done
+}
+
+__best_runner_report:parse:IGNORE() {
+	((TOTAL_IGNORED++)) || true
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Functions: Reporting
+# ----------------------------------------------------------------------------------------------------------------------
+
+show_suite_name() {
+	print_header "Test Suite: $1"
+}
+
+show_passed_test() {
+	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
+
+	if [[ "$VERBOSE_EVERYTHING" == true ]]; then
+		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
+		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
+	fi
+}
+
+show_failed_test() {
+	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
+	show_report_messages
+
+	if [[ "$VERBOSE" == true ]]; then
+		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
+		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
+	fi
+}
+
+show_skipped_test() {
+	printc "[${RESULT_COLOR}SKIP%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
+	show_report_messages
+}
+
+show_report_messages() {
+	if [[ "${#REPORT_RESULT_MESSAGES[@]}" -eq 0 ]]; then
+		printf "\n"
+	elif [[ "${#REPORT_RESULT_MESSAGES[@]}" -eq 1 ]]; then
+		printc "${RESULT_COLOR} :: %s%{CLEAR}\n" "${REPORT_RESULT_MESSAGES[0]}"
+	else
+		printc "${RESULT_COLOR} :: %s%{CLEAR}\n" "${REPORT_RESULT_MESSAGES[0]}"
+		printc "${RESULT_COLOR} ....                       :: %s%{CLEAR}\n" "${REPORT_RESULT_MESSAGES[@]:1}"
+	fi
+}
+
+show_test_output() {
+	if [[ "$(stat_size "$2")" -gt 0 ]]; then
+		printc "${RESULT_COLOR} .... %{CLEAR}%{HEADER}${1}:%{CLEAR}\n"
+		"${OUTPUT_PRINTER[@]}" "$2" | sed "s/^/$(printc "${RESULT_COLOR} .... %{SEPARATOR}|%{CLEAR}") /"
+	fi
+}
+
+show_suite_totals() {
+	if [[ "$TOTAL_ALL" -eq 0 ]]; then
+		printc "${nl}%{WARNING}NO TESTS WERE RUN.%{CLEAR}\n"
 		return
 	fi
-}
 
-verify_test() {
-	# Calculate the status (based on the exit code).
-	if [[ -z "$RESULT_STATUS" ]]; then
-		if [[ "$RESULT_EXIT" -eq 0 ]]; then
-			RESULT_STATUS='SUCCESS'
-		else
-			RESULT_STATUS='FAIL'
-		fi
+	printc "\nTotals:\n"
+	printc "    PASS: %{RESULT_PASS}%d%{CLEAR} / %d\n" "$TOTAL_PASSED" "$TOTAL_ALL"
+	printc "    PASS: %{RESULT_FAIL}%d%{CLEAR} / %d\n" "$TOTAL_FAILED" "$TOTAL_ALL"
+
+	if [[ "$TOTAL_SKIPPED" -gt 0 ]]; then
+		printc "    PASS: %{RESULT_SKIP}%d%{CLEAR} / %d\n" "$TOTAL_SKIPPED" "$TOTAL_ALL"
 	fi
 
-	# Calculate the duration taken.
-	if [[ "$RESULT_TIMER_BEGIN" -ne 0 ]]; then
-		RESULT_TIME_DURATION="$((RESULT_TIMER_END - RESULT_TIMER_BEGIN)) ms"
-	else
-		RESULT_TIME_DURATION=""
+	# Print summaries.
+	local nl='\n'
+	if [[ "$TOTAL_IGNORED" -gt 0 ]]; then
+		printc "${nl}THERE WERE %{WARNING}%d%{CLEAR} TESTS FILTERED OUT.\n" "$TOTAL_IGNORED"
+		nl=''
 	fi
 
-	# Compare snapshots, if applicable.
-	if [[ "$RESULT_STATUS" = "SUCCESS" ]]; then
-		if [[ "$RESULT_SNAPSHOT_STDOUT" = true ]]; then
-			verify_snapshot "stdout" "$RESULT_FD1"
-		fi
-
-		if [[ "$RESULT_SNAPSHOT_STDERR" = true ]]; then
-			verify_snapshot "stderr" "$RESULT_FD2"
-		fi
-	fi
-}
-
-report_test() {
-	if [[ -n "$RESULT_TEST" ]]; then
-		verify_test
-
-		case "$RESULT_STATUS" in
-			SUCCESS) ((TOTAL_PASS++)) || true; report_test_success ;;
-			SKIP)    ((TOTAL_SKIP++)) || true; report_test_skipped ;;
-			FAIL|*)  ((TOTAL_FAIL++)) || true; report_test_failure ;;
-		esac
-
-		if [[ -n "$RESULT_FD1" ]]; then
-			rm "$RESULT_FD1"
-		fi
-
-		if [[ -n "$RESULT_FD2" ]]; then
-			rm "$RESULT_FD2"
-		fi
-	fi
-}
-
-report_test_success() {
-	printc "[%{RESULT_SUCCESS}PASS%{CLEAR}] %-16s :: %s%{CLEAR}\n" "$(test_name "$RESULT_TEST")" "$RESULT_TIME_DURATION"
-
-	# Print the STDOUT/STDERR if VERBOSE is enabled.
-	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
-		cat "$RESULT_FD1"
-		cat "$RESULT_FD2"
-		printf "%s" "${RESULT_VERBOSE}"
-	fi
-}
-
-report_test_skipped() {
-	printc "[%{RESULT_SKIPPED}SKIP%{CLEAR}] %s%{CLEAR}\n" "$(test_name "$RESULT_TEST")"
-}
-
-report_test_failure() {
-	# Print the report line.
-	printc "[%{RESULT_FAILURE}FAIL%{CLEAR}] %-16s ::%{ERROR} " "$(test_name "$RESULT_TEST")"
-	if [[ -n "$RESULT_MESSAGE" ]]; then
-		# shellcheck disable=SC2059
-		printf "$RESULT_MESSAGE" "${RESULT_MESSAGE_DATA[@]}"
-	else
-		printf "Exited with code %d." "$RESULT_EXIT"
-	fi
-	printc "%{CLEAR}\n"
-
-	# Print the STDOUT/STDERR if VERBOSE is enabled.
-	if [[ "$VERBOSE" = true ]]; then
-		cat "$RESULT_FD1"
-		cat "$RESULT_FD2"
-		if [[ "${#RESULT_VERBOSE}" -ge 0 ]]; then
-			printf "%s\n" "${RESULT_VERBOSE}"
-		fi
+	if [[ "$TOTAL_ALL" -eq "$TOTAL_PASSED" ]]; then
+		printc "${nl}ALL TESTS PASSED.\n"
+		nl=''
 	fi
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" = true ]]; then
+if [[ "$PORCELAIN" == true ]]; then
 	:
 	# TODO: Porcelain for test results.
+fi
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Init:
+# ----------------------------------------------------------------------------------------------------------------------
+OUTPUT_PRINTER=(cat)
+if command -v bat &> /dev/null; then
+	OUTPUT_PRINTER=(bat --paging=never --decorations=always --color=always --style=numbers --terminal-width="$(($(tput cols) - 8))");
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -278,7 +224,7 @@ fi
 
 COMMAND_EXIT=0
 for suite in "${SUITE_FILES[@]}"; do
-	runner_for_suite "$suite"
+	run_suite "$suite"
 done
 
 exit $COMMAND_EXIT

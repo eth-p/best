@@ -52,6 +52,7 @@ while shiftopt; do
 		'--debug')             VERBOSE=true; DEBUG=true ;;
 		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
 		'--list')              SUBCOMMAND='list' ;;
+		'--repl')              SUBCOMMAND='repl' ;;
 		'--color')             printc_init true ;;
 		'--no-color')          printc_init false ;;
 		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;

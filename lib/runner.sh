@@ -1,9 +1,9 @@
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # best | Copyright (C) 2020 eth-p | MIT License
 #
 # Repository: https://github.com/eth-p/best
 # Issues:     https://github.com/eth-p/best/issues
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 # Executes a new instance of the test runner.
 # The test runner is specified by the `BEST_RUNNER` environment variable.
@@ -29,7 +29,8 @@ runner() {
 			TEST_LIB_DIR="$TEST_LIB_DIR" \
 			TEST_SHIM_DIR="$TEST_SHIM_DIR" \
 			BEST_VERSION="$BEST_VERSION" \
-			"${BEST_BASH}" "${BEST_RUNNER}"
+			BEST_RUNNER_QUIET="${BEST_RUNNER_QUIET:-false}" \
+			"${BEST_BASH}" "${BEST_RUNNER}" "$@"
 	})
 }
 
@@ -38,19 +39,19 @@ runner:load() {
 }
 
 runner:run() {
-	printf "EXEC_TEST " 1>&3
+	printf "TEST " 1>&3
 	printf "%q " "$@" 1>&3
 	printf "\n" 1>&3
 }
 
 runner:skip() {
-	printf "SKIP %s\n" "$1" 1>&3
+	printf "ECHO IGNORE %s\n" "$1" 1>&3
 }
 
 runner:test_setup() {
-	printf "EXEC setup\n" 1>&3
+	printf "EVAL if type -t setup &>/dev/null; then setup; fi\n" 1>&3
 }
 
 runner:test_teardown() {
-	printf "EXEC teardown\n" 1>&3
+	printf "EVAL if type -t teardown &>/dev/null; then teardown; fi\n" 1>&3
 }

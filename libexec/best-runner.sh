@@ -5,56 +5,23 @@
 # Repository: https://github.com/eth-p/best
 # Issues:     https://github.com/eth-p/best/issues
 # ----------------------------------------------------------------------------------------------------------------------
-# Internal Functions:
+__BEST_ROOT="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(dirname "$(readlink "${BASH_SOURCE[0]}" || echo ".")")" && pwd)")"
+__BEST_RUNNER_LIB="${__BEST_ROOT}/lib/test_runner"
 # ----------------------------------------------------------------------------------------------------------------------
-
-# Prints the current time in milliseconds.
-if ! [[ "$(gdate +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
-	__best_time() {
-		gdate +'%s%3N'
-	}
-elif ! [[ "$(date +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
-	__best_time() {
-		date +'%s%3N'
-	}
-elif command -v python &>/dev/null; then
-	__best_time() {
-		# This is the slowest thing in test execution overhead.
-		python -c 'import time; import math; print int(math.floor(time.time() * 1000))'
-	}
-else
-	__best_time() {
-		printf "0\n"
-	}
-fi
-
-# Prints a skip status.
-__best_fn_skip() {
-	printf "SKIP\n" 1>&3
+# shellcheck disable=SC1090
+{
+	shopt -s nullglob
+	for __file in "${__BEST_RUNNER_LIB}"/*.sh; do source "$__file"; done
+	for __file in "${TEST_LIB_DIR}"/*; do source "$__file"; done
+	shopt -u nullglob
 }
+# ----------------------------------------------------------------------------------------------------------------------
+__best_cleanup_files=()
 
-# Prints a failure status.
-__best_fn_fail() {
-	printf "FAIL\n" 1>&3
-}
-
-# Prints a snapshot directive.
-__best_fn_snapshot() {
-	printf "SNAPSHOT %s\n" "$1" 1>&3
-}
-
-# Prints the reason behind a failure.
-#
-# Arguments:
-#     $1  [string]    -- The message.
-#     ... [string...] -- Extra message data.
-#
-__best_fn_fail_reason() {
-	printf "FAIL_MSG %s\n" "$1" 1>&3
-	local var
-	for var in "${@:2}"; do
-		printf "FAIL_MSG_DATA %s\n" "$var" 1>&3
-	done
+# shellcheck disable=SC2059
+{
+	__best_runner_message_success() { :; }
+	__best_runner_message_error()  { __best_ipc_send_crash "$(printf "$@")"; }
 }
 
 # An internal command that executes a test.
@@ -63,21 +30,19 @@ __best_fn_fail_reason() {
 #     $1  [string]    -- The test function.
 #
 __best_run() {
-	(set -e -o pipefail; "$1")
+	(
+		set -e -o pipefail
+		"$1"
+	)
 	return $?
 }
 
-# Prints text to STDERR when in terminal REPL mode.
-#     $1  [string]    -- The message.
-#     ... [string...] -- Extra message data.
-#
-__best_repl_response() { :; }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Commands:
 # ----------------------------------------------------------------------------------------------------------------------
 
-# REPL: LOAD
+# COMMAND: LOAD
 # Loads a file into the current process.
 #
 # Arguments:
@@ -85,139 +50,94 @@ __best_repl_response() { :; }
 #
 __best_cmd_LOAD() {
 	# shellcheck disable=SC1090
-	if source "$1"; then
-		__best_repl_response "OK.\n"
+	if ! source "$1"; then
+		__best_runner_message_error "Failed to load '%s'." "$1"
 	fi
 }
 
-# REPL: EXEC_TEST
+# REPL: TEST
 # Execute a test function.
 #
 # Arguments:
 #     $1  [string]    -- The function to execute.
 #
-__best_cmd_EXEC_TEST() {
+__best_cmd_TEST() {
 	local test="$1"
+
+	# Check to make sure a valid test was specified.
+	if [[ -z "$test" ]]; then
+		__best_runner_message_error "No test specified."
+		return 1
+	fi
+
+	if ! type -t "$test" &>/dev/null; then
+		__best_runner_message_error "Unknown test specified."
+		return 1
+	fi
+
+	# Set variables.
 	local stdout="${TMPDIR}/$$.${test}.stdout"
 	local stderr="${TMPDIR}/$$.${test}.stderr"
-	__best_tempfiles+=("$stdout" "$stderr")
-	__best_last_stdout="$stdout"
-	__best_last_stderr="$stderr"
 
 	# Print the info.
-	printf "EXEC %s\n" "$test" 1>&3
-	printf "FD1 %s\n" "$stdout" 1>&3
-	printf "FD2 %s\n" "$stderr" 1>&3
+	__best_ipc_send_test_name "$test"
+	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDOUT" "$stdout"
+	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDERR" "$stderr"
 
 	# Run the test.
-	printf "TIMER_BEGIN %d\n" "$(__best_time)";
+	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_START" "$(__best_time)"
 	__best_run "$1" \
-		1>"$stdout" \
-		2>"$stderr"
+		1> "$stdout" \
+		2> "$stderr"
 	local status="$?"
-	printf "TIMER_END %d\n" "$(__best_time)"
+	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_FINISH" "$(__best_time)"
+	__best_ipc_send_test_complete "$status"
 
-	# Print the exit status.
-	__best_last_status="$status"
-	printf "EXIT %d\n" "$status" 1>&3
+	# Update global variables.
+	__best_cleanup_files+=("$stdout" "$stderr")
 }
 
-# REPL: EXEC
-# Execute a regular function.
+# REPL: EVAL
+# Evaluate a string.
 #
 # Arguments:
-#     $1  [string]    -- The function to execute.
+#     $1  [string]    -- The string to evaluate.
 #
-__best_cmd_EXEC() {
-	if type "$1" &>/dev/null; then
-		"$@" || {
-			printf "\nERROR_CODE %d" "$?"
-			printf "ERROR_SOURCE %s" "$1"
-			printf " %s" "${@:2}"
-			exit 1
-		} 1>&3
-	else
-		__best_repl_response "ERROR. Unknown command: %s\n" "$1"
-	fi
-}
-
-# REPL: SKIP
-# Skip a test.
-# This is basically just a fake EXEC_TEST.
-#
-# Arguments:
-#     $1  [string]    -- The test name.
-#
-__best_cmd_SKIP() {
-	printf "EXEC %s\nSKIP\nEXIT 0\n" "$1" 1>&3
-}
-
-# REPL: CLEANUP
-# Remove all temporary files created during this instance.
-__best_cmd_CLEANUP() {
-	local file
-	for file in "${__best_tempfiles[@]}"; do
-		__best_repl_response "CLEANUP. Removing temporary: %s\n" "$file"
-		rm "$file"
-	done
-
-	__best_tempfiles=()
-}
-
-# REPL: SHOW
-# Show information about the last test.
-#
-# Arguments:
-#     $1  ["STATUS"]    -- The exit code of the last test.
-#     $1  ["STDOUT"]    -- The STDOUT of the last test.
-#     $1  ["STDERR"]    -- The STDERR of the last test.
-#
-__best_cmd_SHOW() {
-	case "$1" in
-		STATUS) echo "$__best_last_status" ;;
-		STDOUT|OUT|FD1) cat "$__best_last_stdout" ;;
-		STDERR|ERR|FD12) cat "$__best_last_stderr" ;;
-		*) __best_repl_response "ERROR. Unknown SHOW target: %s\n" "$1" ;;
-	esac
-}
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Init:
-# ----------------------------------------------------------------------------------------------------------------------
-if [[ -t 1 ]]; then
-	trap '__best_cmd_CLEANUP; exit 0' INT
-	__best_repl_response() {
-		# shellcheck disable=SC2059
-		printf "$@" 1>&2
+__best_cmd_EVAL() {
+	local status
+	eval "$1" || {
+		status="$?"
+		__best_runner_message_error "failed with exit code %s" "$status"
 	}
-fi
+}
 
-# Load test libraries.
-if [[ -n "${TEST_LIB_DIR}" ]]; then
-	shopt -s nullglob
-	for __file in "${TEST_LIB_DIR}"/*; do
-		# shellcheck disable=SC1090
-		source "$__file"
-	done
-	shopt -u nullglob
-	unset __file
-else
-	__best_repl_response "WARNING: 'TEST_LIB_DIR' is not specified. Test libraries are missing.\n"
-fi
+# REPL: ECHO
+# Prints a message back.
+#
+# Arguments:
+#     $1  [string]    -- The message.
+#
+__best_cmd_ECHO() {
+	printf "%s\n" "$1" 1>&3
+}
+
 
 # ----------------------------------------------------------------------------------------------------------------------
-# REPL:
+# Main:
 # ----------------------------------------------------------------------------------------------------------------------
-__best_repl_counter=0
-__best_tempfiles=()
-__best_repl_response "[%d]> " "$__best_repl_counter"
-while read -r command args; do
-	if [[ -n "${command}" ]]; then
-		((__best_repl_counter++)) || true
 
-		# shellcheck disable=SC2086
-		__best_cmd_"${command}" $args 3>&1
+__best_runner_main() {
+	local command
+	local args
+
+	read -r command args || return $?
+
+	if [[ "$BEST_RUNNER_QUIET" != true ]]; then
+		__best_ipc_send_executing_message "$command" "$args" 3>&1
 	fi
 
-	__best_repl_response "[%d]> " "$__best_repl_counter"
-done
+	__best_cmd_"${command}" "$args" 3>&1
+	return 0
+}
+
+while __best_runner_main "$@"; do :; done

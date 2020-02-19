@@ -60,6 +60,7 @@ printc_init() {
 # ----------------------------------------------------------------------------------------------------------------------
 printc_init << "END"
 	CLEAR	\x1B[0m
+	DIM     \x1B[2m
 	ERROR   \x1B[31m
 	WARNING \x1B[33m
 	DEBUG   \x1B[2;37m
@@ -72,7 +73,7 @@ printc_init << "END"
 	TEST_NAME         \x1B[34m
 	TEST_DESCRIPTION  \x1B[0m
 
-	RESULT_SUCCESS \x1B[32m
-	RESULT_SKIPPED \x1B[37m
-	RESULT_FAILURE \x1B[31m
+	RESULT_PASS \x1B[32m
+	RESULT_SKIP \x1B[37m
+	RESULT_FAIL \x1B[31m
 END

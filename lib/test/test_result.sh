@@ -16,15 +16,27 @@
 #     fail "Could not find '%s'" "bash"
 #
 fail() {
-	__best_fn_fail
-	if [[ $# -ge 1 ]]; then
-		__best_fn_fail_reason "$@"
-	fi
+	# shellcheck disable=SC2059
+	__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "$(printf "$@")"
 	exit 255
 }
 
 # Causes the test to be skipped.
+#
+# Arguments:
+#     $1  [string]    -- The failure reason (printf pattern).
+#     ... [string]    -- The pattern arguments.
+#
+# Example:
+#
+#     skip "Test disabled on %s." "$(uname -s)"
+#
 skip() {
-	__best_fn_skip
-	exit 0
+	# shellcheck disable=SC2059
+	if [[ $# -gt 0 ]]; then
+		__best_test_abort "$__BEST_RESULT_ENUM_SKIP" "$(printf "$@")"
+	else
+		__best_test_abort "$__BEST_RESULT_ENUM_SKIP" ""
+	fi
+	exit 255
 }
