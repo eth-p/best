@@ -22,10 +22,10 @@ snapshot_file() {
 }
 
 __best_snapshot_file() {
-	local id="${REPORT_TEST//[A-Z_-.]/_}"
+	local id="${REPORT_TEST//[^A-Za-z_\.\-]/_}"
 	if [[ "$REPORT_SUITE" ]]; then
 		local suite="$(basename "$REPORT_SUITE" .sh)"
-		id="${suite//[A-Z_-]/_}/${id}";
+		id="${suite//[^A-Za-z_\-]/_}/${id}";
 	fi
 
 	printf "%s/%s.%s.snapshot\n" "$SNAPSHOT_DIR" "$id" "$(tr '[:upper:]' '[:lower:]' <<< "$1")"
