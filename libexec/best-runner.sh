@@ -31,6 +31,7 @@ __best_cleanup_files=()
 #
 __best_run() {
 	(
+		__BEST_INSIDE_TEST=true
 		set -e -o pipefail
 		"$1"
 	)

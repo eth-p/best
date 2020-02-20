@@ -99,7 +99,7 @@ __best_ipc_send_message() {
 # This represents a fatal crash that indicates the runner failed in some way.
 #
 # Arguments:
-#     $1  [string]  -- The result message.
+#     $1  [string]  -- The crash message.
 #
 __best_ipc_send_crash() {
 	__best_ipc_send "RUNNER_CRASH" "$1"

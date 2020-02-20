@@ -77,7 +77,7 @@ run_suite() {
 		}
 
 		runner:test_teardown
-	}))
+	}) || printf "RUNNER_CRASH The runner crashed with exit code %d\n" "$?") || return 0
 
 	TOTAL_ALL="$((TOTAL_PASSED + TOTAL_FAILED + TOTAL_SKIPPED))"
 	show_suite_totals
@@ -117,6 +117,12 @@ parse_suite_report() {
 		if [[ -f "$REPORT_OUTPUT_STDOUT" ]]; then rm "$REPORT_OUTPUT_STDOUT"; fi
 		if [[ -f "$REPORT_OUTPUT_STDERR" ]]; then rm "$REPORT_OUTPUT_STDERR"; fi
 	done
+
+	if [[ "$RUNNER_CRASH" = true ]]; then
+		printc "%{ERROR}FATAL ERROR: The test runner has crashed.%{CLEAR}\n"
+		printc "%s\n" "${RUNNER_CRASH_MESSAGES[@]}"
+		return 1
+	fi
 }
 
 __best_runner_report:parse:IGNORE() {

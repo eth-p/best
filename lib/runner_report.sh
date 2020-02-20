@@ -10,19 +10,24 @@ runner_report() {
 }
 
 __best_runner_report() {
+	RUNNER_CRASH=false
+	RUNNER_CRASH_MESSAGES=()
 	REPORT_RESULT=''
 	REPORT_RESULT_MESSAGES=()
 	REPORT_OUTPUT_STDOUT=''
 	REPORT_OUTPUT_STDERR=''
 	REPORT_SNAPSHOT_DIFF=''
+	__REPORT_ABORT=false
 	__REPORT_CHECK_SNAPSHOT_STDOUT=false
 	__REPORT_CHECK_SNAPSHOT_STDERR=false
 	__REPORT_RESULT_MSG=''
 	__REPORT_RESULT_MSG_DATA=()
 
+	# shellcheck disable=SC2181
 	while read -r message data || return $?; do
 		__best_runner_report:parse "$message" "$data"
-		if [[ "$message" = "TEST_COMPLETE" ]]; then
+		if [[ "$__REPORT_ABORT" = true || "$message" = "TEST_COMPLETE" ]]; then
+			if [[ "$__REPORT_ABORT" ]]; then return 1; fi
 			break
 		fi
 	done
@@ -117,4 +122,10 @@ __best_runner_report:parse:RESULT_MSG() {
 
 __best_runner_report:parse:RESULT_MSG_DATA() {
 	__REPORT_RESULT_MSG_DATA+=("$1")
+}
+
+__best_runner_report:parse:RUNNER_CRASH() {
+	__REPORT_ABORT=true
+	RUNNER_CRASH_MESSAGES+=("$1")
+	RUNNER_CRASH=true
 }
