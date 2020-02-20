@@ -52,6 +52,11 @@ __best_runner_main_test() {
 		return 1
 	fi
 
+	if ! [[ "$1" =~ ^test[A-Z_:] ]]; then
+		__best_runner_message_error "Please use fully-qualified test names."
+		return 1
+	fi
+
 	if ! type -t "$1" &>/dev/null; then
 		__best_runner_message_error "Unknown test specified."
 		return 1
