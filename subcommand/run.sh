@@ -192,10 +192,10 @@ show_suite_totals() {
 
 	printc "\nTotals:\n"
 	printc "    PASS: %{RESULT_PASS}%d%{CLEAR} / %d\n" "$TOTAL_PASSED" "$TOTAL_ALL"
-	printc "    PASS: %{RESULT_FAIL}%d%{CLEAR} / %d\n" "$TOTAL_FAILED" "$TOTAL_ALL"
+	printc "    FAIL: %{RESULT_FAIL}%d%{CLEAR} / %d\n" "$TOTAL_FAILED" "$TOTAL_ALL"
 
 	if [[ "$TOTAL_SKIPPED" -gt 0 ]]; then
-		printc "    PASS: %{RESULT_SKIP}%d%{CLEAR} / %d\n" "$TOTAL_SKIPPED" "$TOTAL_ALL"
+		printc "    SKIP: %{RESULT_SKIP}%d%{CLEAR} / %d\n" "$TOTAL_SKIPPED" "$TOTAL_ALL"
 	fi
 
 	# Print summaries.
