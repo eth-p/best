@@ -46,6 +46,8 @@ __best_runner_main() {
 }
 
 __best_runner_main_test() {
+	local errored=false
+
 	# Check to make sure a valid test was specified.
 	if [[ -z "$1" ]]; then
 		__best_runner_message_error "No test specified."
@@ -64,22 +66,27 @@ __best_runner_main_test() {
 
 	# Run the test.
 	__best_runner_report < <(__best_cmd_TEST "$1" 3>&1)
+	if [[ $? -ne 0 ]]; then errored=true; fi
 
 	# Add the output files to cleanup.
 	__best_cleanup_files+=("$REPORT_OUTPUT_STDOUT" "$REPORT_OUTPUT_STDERR")
 
 	# Print test information.
-	local code_color="%{RESULT_${REPORT_RESULT}}"
+	if [[ "$errored" = true ]]; then
+		__best_runner_message_error "The test runner crashed."
+	else
+		local code_color="%{RESULT_${REPORT_RESULT}}"
 
-	printc "Finished with ${code_color}%s%{CLEAR} and exit code ${code_color}%d%{CLEAR} in %d ms.\n" \
-		"$REPORT_RESULT" \
-		"$REPORT_EXIT" \
-		"$REPORT_DURATION"
+		printc "Finished with ${code_color}%s%{CLEAR} and exit code ${code_color}%d%{CLEAR} in %d ms.\n" \
+			"$REPORT_RESULT" \
+			"$REPORT_EXIT" \
+			"$REPORT_DURATION"
 
-	local message
-	for message in "${REPORT_RESULT_MESSAGES[@]}"; do
-		printc "${code_color}%s%{CLEAR}\n" "$message"
-	done
+		local message
+		for message in "${REPORT_RESULT_MESSAGES[@]}"; do
+			printc "${code_color}%s%{CLEAR}\n" "$message"
+		done
+	fi
 
 	# Print test outputs.
 	if [[ "$(__best_stat_size "$REPORT_OUTPUT_STDOUT")" -gt 0 ]]; then
