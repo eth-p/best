@@ -66,6 +66,7 @@ while shiftopt; do
 		'--no-color')          printc_init false ;;
 		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;
 		'--snapshot:show')     SNAPSHOT_SHOW=true ;;
+		'--snapshot:skip')     SNAPSHOT_SKIP=true ;;
 		--)                    OPT_ARGV+=("$@"); break ;;
 		-*)                    fatal_error "unknown option '%s'" "$OPT" ;;
 		*)                     OPT_ARGV+=("$OPT") ;;
