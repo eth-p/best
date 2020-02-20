@@ -163,7 +163,7 @@ show_failed_test() {
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 
-	if [[ "$SNAPSHOT_SHOW" == true && -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+	if [[ "$SNAPSHOT_SHOW" == true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
 		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 	fi
 
