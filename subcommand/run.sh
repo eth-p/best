@@ -200,7 +200,7 @@ show_snapshot_diff() {
 	printc "${RESULT_COLOR} .... %{CLEAR}%{HEADER}Snapshot Difference: %s%{CLEAR}\n" "$1"
 
 	# shellcheck disable=SC2001
-	sed "s/^/$(printc "${RESULT_COLOR} .... %{SEPARATOR}|%{CLEAR}") /" <<< "$2"
+	"${DIFF_PRINTER[@]}" <<< "$2" | sed "s/^/$(printc "${RESULT_COLOR} .... %{SEPARATOR}|%{CLEAR}") /"
 }
 
 show_suite_totals() {
@@ -250,8 +250,14 @@ fi
 # Init:
 # ----------------------------------------------------------------------------------------------------------------------
 OUTPUT_PRINTER=(cat)
+DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
-	OUTPUT_PRINTER=(bat --paging=never --decorations=always --color=always --style=numbers --terminal-width="$(($(tput cols) - 8))")
+	OUTPUT_PRINTER=(bat --paging=never --decorations=always --style=numbers \
+		--color="$(if [[ "$COLOR" = true ]]; then echo "always"; else echo "never"; fi)" \
+		--terminal-width="$(($(tput cols) - 8))" \
+	)
+
+	DIFF_PRINTER=("${OUTPUT_PRINTER[@]}" --language=diff)
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------

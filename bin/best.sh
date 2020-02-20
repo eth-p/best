@@ -42,6 +42,12 @@ if [[ -z "$TEST_PWD" ]]; then
 		export TEST_PWD="$PWD"
 	fi
 fi
+
+COLOR=false
+if [[ -t 1 ]]; then
+	COLOR=true
+fi
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Options:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -63,8 +69,8 @@ while shiftopt; do
 		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
 		'--list')              SUBCOMMAND='list' ;;
 		'--repl')              SUBCOMMAND='repl' ;;
-		'--color')             printc_init true ;;
-		'--no-color')          printc_init false ;;
+		'--color')             COLOR=false printc_init true ;;
+		'--no-color')          COLOR=false printc_init false ;;
 		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;
 		'--snapshot:show')     SNAPSHOT_SHOW=true ;;
 		'--snapshot:skip')     SNAPSHOT_SKIP=true ;;
