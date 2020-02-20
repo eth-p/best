@@ -43,6 +43,9 @@ __best_test_set_result() {
 #     __best_test_abort FAIL "The test was aborted."
 #
 __best_test_abort() {
-	__best_ipc_send_test_result "$@"
+	__best_ipc_send_test_result "$1"
+	if [[ $# -gt 1 ]]; then
+		__best_ipc_send_test_result_message "${@:2}"
+	fi
 	exit 1
 }

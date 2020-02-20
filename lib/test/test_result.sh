@@ -16,8 +16,12 @@
 #     fail "Could not find '%s'" "bash"
 #
 fail() {
-	# shellcheck disable=SC2059
-	__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "$(printf "$@")"
+	if [[ $# -eq 0 ]]; then
+		__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "Test called 'fail' function."
+	else
+		# shellcheck disable=SC2059
+		__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "$(printf "$@")"
+	fi
 	exit 255
 }
 
