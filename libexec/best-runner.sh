@@ -64,7 +64,7 @@ __best_cmd_LOAD() {
 #
 __best_cmd_TEST() {
 	local test="$1"
-	local test_safe="${test//[^A-Z]/_}"
+	local test_safe="${test//[^A-Za-z_]/_}"
 
 	# Check to make sure a valid test was specified.
 	if [[ -z "$test" ]]; then
