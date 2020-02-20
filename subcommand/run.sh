@@ -31,7 +31,7 @@ run_test_maybe() {
 	local key
 	for key in "${!RUN_TESTS[@]}"; do
 		local test="${RUN_TESTS[$key]}"
-		if [[ "$TEST_ID" = "${RUN_TESTPREFIX}${test}" || "$TEST_ID" = "${test}" ]]; then
+		if [[ "$TEST_ID" == "${RUN_TESTPREFIX}${test}" || "$TEST_ID" == "${test}" ]]; then
 			RUN_TESTS=("${RUN_TESTS[@]/$key/}")
 			run_test
 			return $?
@@ -97,17 +97,18 @@ parse_suite_report() {
 		case "$REPORT_RESULT" in
 			PASS)
 				RESULT_COLOR="%{RESULT_PASS}"
-				((TOTAL_PASSED++))                                     || true
+				((TOTAL_PASSED++)) || true
 				show_passed_test
 				;;
 			SKIP)
 				RESULT_COLOR="%{RESULT_SKIP}"
-				((TOTAL_SKIPPED++))                                     || true
+				((TOTAL_SKIPPED++)) || true
 				show_skipped_test
 				;;
 			FAIL | *)
+				COMMAND_EXIT=2
 				RESULT_COLOR="%{RESULT_FAIL}"
-				((TOTAL_FAILED++))                                       || true
+				((TOTAL_FAILED++)) || true
 				show_failed_test
 				;;
 		esac
@@ -133,7 +134,7 @@ show_suite_name() {
 show_passed_test() {
 	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
 
-	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
+	if [[ "$VERBOSE_EVERYTHING" == true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -143,11 +144,11 @@ show_failed_test() {
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 
-	if [[ "$SNAPSHOT_SHOW" = true && -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+	if [[ "$SNAPSHOT_SHOW" == true && -n "$REPORT_SNAPSHOT_DIFF" ]]; then
 		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 	fi
 
-	if [[ "$VERBOSE" = true ]]; then
+	if [[ "$VERBOSE" == true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -213,7 +214,7 @@ show_suite_totals() {
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" = true ]]; then
+if [[ "$PORCELAIN" == true ]]; then
 	:
 	# TODO: Porcelain for test results.
 fi
@@ -223,7 +224,7 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 OUTPUT_PRINTER=(cat)
 if command -v bat &> /dev/null; then
-	OUTPUT_PRINTER=(bat --paging=never --decorations=always --color=always --style=numbers --terminal-width="$(($(tput cols) - 8))");
+	OUTPUT_PRINTER=(bat --paging=never --decorations=always --color=always --style=numbers --terminal-width="$(($(tput cols) - 8))")
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------
