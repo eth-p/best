@@ -111,6 +111,8 @@ suite_name() {
 #
 # shellcheck disable=SC2120
 suite_files() {
+	shopt -s nullglob
+
 	local dir="$1"
 	local file
 	local error=false
@@ -147,6 +149,7 @@ suite_files() {
 	fi
 
 	# Return.
+	shopt -u nullglob
 	[[ "$error" = false ]]
 	return $?
 }
