@@ -64,6 +64,7 @@ __best_cmd_LOAD() {
 #
 __best_cmd_TEST() {
 	local test="$1"
+	local test_safe="${test//[^A-Z]/_}"
 
 	# Check to make sure a valid test was specified.
 	if [[ -z "$test" ]]; then
@@ -77,8 +78,8 @@ __best_cmd_TEST() {
 	fi
 
 	# Set variables.
-	local stdout="${TMPDIR}/$$.${test}.stdout"
-	local stderr="${TMPDIR}/$$.${test}.stderr"
+	local stdout="${TMPDIR}/$$.${test_safe}.stdout"
+	local stderr="${TMPDIR}/$$.${test_safe}.stderr"
 
 	# Print the info.
 	__best_ipc_send_test_name "$test"
