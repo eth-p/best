@@ -15,6 +15,7 @@ bin/best.sh [options] [test...]
 | --------------------- | ---------- | ------------------------------------------------------------ |
 | `--suite`             | \[string\] | Loads a specific test suite.<br />If this is absent, all suites in `$PWD/test` will be loaded. |
 | `--snapshot:generate` |            | Forces all snapshots to be regenerated.                      |
+| `--snapshot:show`     |            | Prints the difference between test output and output snapshots. |
 | `--verbose`           |            | Prints STDOUT and STDERR of failed tests.                    |
 | `--VERBOSE`           |            | Prints STDOUT and STDERR of all tests.                       |
 | `--debug`             |            | Prints debug information.<br />This only prints information about `best` itself. |
@@ -58,6 +59,8 @@ test:my_test() {
 - [`assert_less_or_equal [a] [b]`](docs/fn_assert_less_or_equal.md)
 - [`assert_greater [a] [b]`](docs/fn_assert_greater.md)
 - [`assert_greater_or_equal [a] [b]`](docs/fn_assert_greater_or_equal.md)
+- [`fail [pattern] [...]`](docs/fn_fail.md)
+- [`snapshot ["stdout"|"stderr"]`](docs/fn_snapshot.md)
 
 ### 
 
