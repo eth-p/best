@@ -10,7 +10,7 @@
 # This will attempt to use the GNU date command to get the time, but will fallback to the slower Python implementation.
 # If you're on a non-GNU system (or using Busybox), tests can run a fair bit faster if you install GNU coreutils.
 #
-if ! [[ "$(gdate +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
+if command -v gdate &>/dev/null && ! [[ "$(gdate +'%s%3N' 2>/dev/null)" =~ N$ ]]; then
 	__best_time() {
 		gdate +'%s%3N'
 	}
