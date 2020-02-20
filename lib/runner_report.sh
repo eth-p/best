@@ -27,7 +27,7 @@ __best_runner_report() {
 	while read -r message data || return $?; do
 		__best_runner_report:parse "$message" "$data"
 		if [[ "$__REPORT_ABORT" = true || "$message" = "TEST_COMPLETE" ]]; then
-			if [[ "$__REPORT_ABORT" ]]; then return 1; fi
+			if [[ "$__REPORT_ABORT" = true ]]; then return 1; fi
 			break
 		fi
 	done
@@ -68,6 +68,11 @@ __best_runner_report() {
 }
 
 __best_runner_report:parse() {
+	__best_runner_report:do_parse "$@"
+	return $?
+}
+
+__best_runner_report:do_parse() {
 	if ! type -t "__best_runner_report:parse:$1" &>/dev/null; then
 		return 1
 	fi
