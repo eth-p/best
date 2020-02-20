@@ -141,4 +141,15 @@ __best_runner_main() {
 	return 0
 }
 
-while __best_runner_main "$@"; do :; done
+# shellcheck disable=SC2181
+#
+# While I would prefer a simple `while __best_runner_main "$@"; do :; done` loop, that can't be used because of the
+# rules surrounding `set -e` being ignored.
+#
+# See https://unix.stackexchange.com/a/65564 for more information.
+while true; do
+	__best_runner_main "$@"
+	if [[ $? -ne 0 ]]; then
+		break
+	fi
+done

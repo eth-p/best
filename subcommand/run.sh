@@ -65,22 +65,32 @@ run_suite() {
 	# `run_suite` sends commands to a runner instance through FD4, and outputs messages through FD1.
 	# The complex FD redirections below enable this to happen.
 	exec 6>&1 5>&2
-	parse_suite_report < <(runner < <({
-		exec 3>&1 1>&6
-		runner:load "$1"
-		runner:test_setup
+	if ! parse_suite_report < <({
+		if runner < <({
+			exec 3>&1 1>&6
+			runner:load "$1"
+			runner:test_setup
 
-		# Call `run_test_maybe` for each test in the suite.
-		{
-			suite_tests load "$suite"
-			while suite_tests next; do
-				TEST_ID="${SUITE_NAME}:$(test_name "${TEST_NAME}")"
-				run_test_maybe
-			done
-		}
+			# Call `run_test_maybe` for each test in the suite.
+			{
+				suite_tests load "$suite"
+				while suite_tests next; do
+					TEST_ID="${SUITE_NAME}:$(test_name "${TEST_NAME}")"
+					run_test_maybe
+				done
+			}
 
-		runner:test_teardown
-	}) || printf "RUNNER_CRASH The runner crashed with exit code %d\n" "$?") || return 0
+			runner:test_teardown
+		}); then :; else
+			# We have to use if-then-else because '!' will eat the exit code.
+			printf "RUNNER_CRASH The runner crashed with exit code %d\n" "$?"
+			return 1
+		fi
+	}); then
+		# The runner crashed.
+		# We shouldn't show any summaries.
+		return 0
+	fi
 
 	TOTAL_ALL="$((TOTAL_PASSED + TOTAL_FAILED + TOTAL_SKIPPED))"
 	show_suite_totals
