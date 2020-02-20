@@ -14,8 +14,8 @@
 #
 # Example:
 #
-#     assert [[ 1 =~ world$ ]]
+#     snapshot stdout
 #
 snapshot() {
-	__best_fn_snapshot "$1"
+	__best_ipc_send "SNAPSHOT" "$(tr '[:lower:]' '[:upper:]' <<< "$1")"
 }

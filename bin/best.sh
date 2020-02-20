@@ -24,14 +24,23 @@ export BEST_RUNNER="${ROOT}/libexec/best-runner.sh"
 # Configurable:
 export BEST_BASH="${BEST_BASH:-${BASH}}"
 
-export TEST_PWD="${TEST_PWD:-${PWD}}"
 export TEST_ENV_PATH="${TEST_ENV_PATH:-${PATH}}"
 export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR}}"
 export TEST_ENV_HOME="${TEST_ENV_HOME:-${HOME}}"
 
 export TEST_LIB_DIR="${TEST_LIB_DIR:-${LIB}/test}"
 export TEST_SHIM_DIR="${TEST_SHIM_DIR:-${LIB}/shim}"
-export TEST_DIR="${PWD}/test"
+export TEST_DIR="${TEST_DIR:-${PWD}/test}"
+
+export SNAPSHOT_DIR="${SNAPSHOT_DIR:-${PWD}/test-snapshots}"
+
+if [[ -z "$TEST_PWD" ]]; then
+	if [[ -d "${PWD}/test-data" ]]; then
+		export TEST_PWD="${PWD}/test-data"
+	else
+		export TEST_PWD="$PWD"
+	fi
+fi
 # ----------------------------------------------------------------------------------------------------------------------
 # Options:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -56,6 +65,7 @@ while shiftopt; do
 		'--color')             printc_init true ;;
 		'--no-color')          printc_init false ;;
 		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;
+		'--snapshot:show')     SNAPSHOT_SHOW=true ;;
 		--)                    OPT_ARGV+=("$@"); break ;;
 		-*)                    fatal_error "unknown option '%s'" "$OPT" ;;
 		*)                     OPT_ARGV+=("$OPT") ;;

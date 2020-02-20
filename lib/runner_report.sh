@@ -12,6 +12,11 @@ runner_report() {
 __best_runner_report() {
 	REPORT_RESULT=''
 	REPORT_RESULT_MESSAGES=()
+	REPORT_OUTPUT_STDOUT=''
+	REPORT_OUTPUT_STDERR=''
+	REPORT_SNAPSHOT_DIFF=''
+	__REPORT_CHECK_SNAPSHOT_STDOUT=false
+	__REPORT_CHECK_SNAPSHOT_STDERR=false
 	__REPORT_RESULT_MSG=''
 	__REPORT_RESULT_MSG_DATA=()
 
@@ -34,6 +39,11 @@ __best_runner_report() {
 		fi
 	fi
 
+	# Validate the snapshots.
+	if type __best_snapshot_validate &>/dev/null; then
+		__best_snapshot_validate
+	fi
+
 	# Collect the messages.
 	if [[ -n "$__REPORT_RESULT_MSG" ]]; then
 		# shellcheck disable=SC2059
@@ -41,6 +51,13 @@ __best_runner_report() {
 	fi
 
 	return 0
+}
+
+
+__best_snapshot_file() {
+	local id="${REPORT_TEST}"
+	if [[ "$REPORT_SUITE" ]]; then id="$(basename "$REPORT_SUITE" .sh)/${id}"; fi
+	printf "%s/%s\n" "$SNAPSHOT_DIR" "$REPORT_TEST"
 }
 
 __best_runner_report:parse() {

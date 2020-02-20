@@ -23,5 +23,6 @@ exec 4<&0
 	# Load the user-friendly function overrides.
 	runner:load "${LIB}/print.sh"
 	runner:load "${LIB}/runner_report.sh"
+	runner:load "${LIB}/runner_snapshot.sh"
 	runner:load "${LIB}/runner_repl.sh"
 } 3>&1 | BEST_RUNNER_QUIET=true runner

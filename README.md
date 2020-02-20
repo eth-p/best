@@ -11,15 +11,16 @@ bin/best.sh [options] [test...]
 
 **Options:**
 
-| Option        | Value      | Description                                                  |
-| ------------- | ---------- | ------------------------------------------------------------ |
-| `--suite`     | \[string\] | Loads a specific test suite.<br />If this is absent, all suites in `$PWD/test` will be loaded. |
-| `--verbose`   |            | Prints STDOUT and STDERR of failed tests.                    |
-| `--VERBOSE`   |            | Prints STDOUT and STDERR of all tests.                       |
-| `--debug`     |            | Prints debug information.<br />This only prints information about `best` itself. |
-| `--porcelain` |            | Changes the printing mode to something machine-friendly.     |
-| `--color`     |            | Enable color output.                                         |
-| `--no-color`  |            | Disable color output.                                        |
+| Option                | Value      | Description                                                  |
+| --------------------- | ---------- | ------------------------------------------------------------ |
+| `--suite`             | \[string\] | Loads a specific test suite.<br />If this is absent, all suites in `$PWD/test` will be loaded. |
+| `--snapshot:generate` |            | Forces all snapshots to be regenerated.                      |
+| `--verbose`           |            | Prints STDOUT and STDERR of failed tests.                    |
+| `--VERBOSE`           |            | Prints STDOUT and STDERR of all tests.                       |
+| `--debug`             |            | Prints debug information.<br />This only prints information about `best` itself. |
+| `--porcelain`         |            | Changes the printing mode to something machine-friendly.     |
+| `--color`             |            | Enable color output.                                         |
+| `--no-color`          |            | Disable color output.                                        |
 
 **Subcommands:**
 

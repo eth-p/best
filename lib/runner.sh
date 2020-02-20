@@ -19,6 +19,7 @@
 #     TEST_ENV_TMPDIR [string]      -- The TEMPDIR variable to run tests with.
 #     TEST_LIB_DIR                  -- The test library directory. All scripts in this directory are loaded by the runner.
 #     TEST_SHIM_DIR                 -- The test shim directory. Scripts in this directory can be included with `use_shim`.
+#     SNAPSHOT_DIR                  -- The snapshot directory.
 #
 runner() {
 	({

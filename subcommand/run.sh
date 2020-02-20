@@ -6,6 +6,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 source "${LIB}/runner.sh"
 source "${LIB}/runner_report.sh"
+source "${LIB}/runner_snapshot.sh"
 source "${LIB}/stat.sh"
 # ----------------------------------------------------------------------------------------------------------------------
 if [[ "${#SUITE_FILES[@]}" -eq 0 ]]; then
@@ -30,7 +31,7 @@ run_test_maybe() {
 	local key
 	for key in "${!RUN_TESTS[@]}"; do
 		local test="${RUN_TESTS[$key]}"
-		if [[ "$TEST_ID" == "${RUN_TESTPREFIX}${test}" || "$TEST_ID" == "${test}" ]]; then
+		if [[ "$TEST_ID" = "${RUN_TESTPREFIX}${test}" || "$TEST_ID" = "${test}" ]]; then
 			RUN_TESTS=("${RUN_TESTS[@]/$key/}")
 			run_test
 			return $?
@@ -44,6 +45,7 @@ run_test_maybe() {
 run_suite() {
 	SUITE_FILE="$1"
 	SUITE_NAME="$(suite_name "$SUITE_FILE")"
+	REPORT_SUITE="$SUITE_FILE"
 
 	TOTAL_PASSED=0
 	TOTAL_FAILED=0
@@ -131,7 +133,7 @@ show_suite_name() {
 show_passed_test() {
 	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
 
-	if [[ "$VERBOSE_EVERYTHING" == true ]]; then
+	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -141,7 +143,12 @@ show_failed_test() {
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 
-	if [[ "$VERBOSE" == true ]]; then
+	if [[ "$SNAPSHOT_SHOW" = true && -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+		# TODO: Handle both STDOUT and STDERR snapshots.
+		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
+	fi
+
+	if [[ "$VERBOSE" = true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -165,9 +172,16 @@ show_report_messages() {
 
 show_test_output() {
 	if [[ "$(stat_size "$2")" -gt 0 ]]; then
-		printc "${RESULT_COLOR} .... %{CLEAR}%{HEADER}${1}:%{CLEAR}\n"
+		printc "${RESULT_COLOR} .... %{CLEAR}%{HEADER}%s:%{CLEAR}\n" "$1"
 		"${OUTPUT_PRINTER[@]}" "$2" | sed "s/^/$(printc "${RESULT_COLOR} .... %{SEPARATOR}|%{CLEAR}") /"
 	fi
+}
+
+show_snapshot_diff() {
+	printc "${RESULT_COLOR} .... %{CLEAR}%{HEADER}Snapshot Difference: %s%{CLEAR}\n" "$1"
+
+	# shellcheck disable=SC2001
+	sed "s/^/$(printc "${RESULT_COLOR} .... %{SEPARATOR}|%{CLEAR}") /" <<< "$2"
 }
 
 show_suite_totals() {
@@ -200,7 +214,7 @@ show_suite_totals() {
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" == true ]]; then
+if [[ "$PORCELAIN" = true ]]; then
 	:
 	# TODO: Porcelain for test results.
 fi
