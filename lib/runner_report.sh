@@ -50,14 +50,16 @@ __best_runner_report() {
 		REPORT_RESULT_MESSAGES+=("$(printf "$__REPORT_RESULT_MSG" "${__REPORT_RESULT_MSG_DATA[@]}")")
 	fi
 
+	# If it failed and there's no message, we can use the exit code.
+	if [[ "$REPORT_RESULT" = "FAIL" && "${#REPORT_RESULT_MESSAGES[@]}" -eq 0 ]]; then
+		if [[ "$REPORT_EXIT" = "127" && -f "$REPORT_OUTPUT_STDERR" ]]; then
+			REPORT_RESULT_MESSAGES+=("$(tail -n1 "$REPORT_OUTPUT_STDERR")")
+		else
+			REPORT_RESULT_MESSAGES+=("Exited with code $REPORT_EXIT.")
+		fi
+	fi
+
 	return 0
-}
-
-
-__best_snapshot_file() {
-	local id="${REPORT_TEST}"
-	if [[ "$REPORT_SUITE" ]]; then id="$(basename "$REPORT_SUITE" .sh)/${id}"; fi
-	printf "%s/%s\n" "$SNAPSHOT_DIR" "$REPORT_TEST"
 }
 
 __best_runner_report:parse() {
