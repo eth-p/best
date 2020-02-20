@@ -16,7 +16,7 @@
 #     TEST_ENV_* [string]           -- An environment variable to pass to the test.
 #     TEST_PWD [string]             -- The working direcory to run tests in.
 #     TEST_LIB_DIR                  -- The test library directory. All scripts in this directory are loaded by the runner.
-#     TEST_SHIM_DIR                 -- The test shim directory. Scripts in this directory can be included with `use_shim`.
+#     TEST_SHIM_PATH                -- The test shim path. Scripts in these directories can be included with `use_shim`.
 #     SNAPSHOT_DIR                  -- The snapshot directory.
 #
 runner() {
@@ -30,7 +30,7 @@ runner() {
 		cd "${TEST_PWD}" && env -i \
 			"${env_passthrough[@]}" \
 			TEST_LIB_DIR="$TEST_LIB_DIR" \
-			TEST_SHIM_DIR="$TEST_SHIM_DIR" \
+			TEST_SHIM_PATH="$TEST_SHIM_PATH" \
 			BEST_VERSION="$BEST_VERSION" \
 			BEST_RUNNER_QUIET="${BEST_RUNNER_QUIET:-false}" \
 			"${BEST_BASH}" "${BEST_RUNNER}" "$@"

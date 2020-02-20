@@ -29,7 +29,7 @@ export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR}}"
 export TEST_ENV_HOME="${TEST_ENV_HOME:-${HOME}}"
 
 export TEST_LIB_DIR="${TEST_LIB_DIR:-${LIB}/test}"
-export TEST_SHIM_DIR="${TEST_SHIM_DIR:-${LIB}/shim}"
+export TEST_SHIM_PATH="${TEST_SHIM_PATH:+${TEST_SHIM_PATH}:}${LIB}/shim"
 export TEST_DIR="${TEST_DIR:-${PWD}/test}"
 
 export SNAPSHOT_DIR="${SNAPSHOT_DIR:-${PWD}/test-snapshots}"
