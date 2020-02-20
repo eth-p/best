@@ -1,6 +1,10 @@
 # Best
 A testing framework designed for Bash, and built with Bash.
 
+Minimum Bash version: `3.2.0`  
+Supported platforms:
+ - GNU Linux
+ - MacOS
 
 
 ## Command Line
