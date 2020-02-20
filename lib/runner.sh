@@ -49,6 +49,10 @@ runner:skip() {
 	printf "ECHO IGNORE %s\n" "$1" 1>&3
 }
 
+runner:eval() {
+	printf "EVAL %s\n" "$1" 1>&3
+}
+
 runner:test_setup() {
 	printf "EVAL if type -t setup &>/dev/null; then setup; fi\n" 1>&3
 }
