@@ -144,7 +144,6 @@ show_failed_test() {
 	show_report_messages
 
 	if [[ "$SNAPSHOT_SHOW" = true && -n "$REPORT_SNAPSHOT_DIFF" ]]; then
-		# TODO: Handle both STDOUT and STDERR snapshots.
 		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 	fi
 

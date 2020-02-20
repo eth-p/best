@@ -36,11 +36,11 @@ if ! type __best_snapshot_validate &>/dev/null; then
 		if [[ "$REPORT_RESULT" != "PASS" ]]; then return; fi
 
 		if [[ "$__REPORT_CHECK_SNAPSHOT_STDOUT" = true ]]; then
-			__best_snapshot_validate_file "STDOUT" "$REPORT_OUTPUT_STDOUT"
+			__best_snapshot_validate_file "STDOUT" "$REPORT_OUTPUT_STDOUT" || return
 		fi
 
 		if [[ "$__REPORT_CHECK_SNAPSHOT_STDERR" = true ]]; then
-			__best_snapshot_validate_file "STDERR" "$REPORT_OUTPUT_STDERR"
+			__best_snapshot_validate_file "STDERR" "$REPORT_OUTPUT_STDERR" || return
 		fi
 	}
 
@@ -51,7 +51,7 @@ if ! type __best_snapshot_validate &>/dev/null; then
 		if ! [[ -f "$2" ]]; then
 			REPORT_RESULT="FAIL"
 			REPORT_RESULT_MESSAGES+=("No $1 captured.")
-			return
+			return 1
 		fi
 
 		if [[ "$SNAPSHOT_GENERATE" ]]; then
@@ -63,14 +63,14 @@ if ! type __best_snapshot_validate &>/dev/null; then
 		if ! [[ -f "$file" ]]; then
 			REPORT_RESULT="FAIL"
 			REPORT_RESULT_MESSAGES+=("No $1 snapshot.")
-			return
+			return 1
 		fi
 
 		# Check the snapshot.
 		if ! REPORT_SNAPSHOT_DIFF="$(diff "$file" "$2")"; then
 			REPORT_RESULT="FAIL"
 			REPORT_RESULT_MESSAGES+=("Mismatched $1 snapshot.")
-			return
+			return 1
 		fi
 	}
 fi
