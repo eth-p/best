@@ -13,20 +13,22 @@
 #     BEST_BASH [string]            -- The bash executable.
 #     BEST_RUNNER [string]          -- The test runner script.
 #
+#     TEST_ENV_* [string]           -- An environment variable to pass to the test.
 #     TEST_PWD [string]             -- The working direcory to run tests in.
-#     TEST_ENV_HOME [string]        -- The HOME variable to run tests with.
-#     TEST_ENV_PATH [string:string] -- The PATH variable to run tests with.
-#     TEST_ENV_TMPDIR [string]      -- The TEMPDIR variable to run tests with.
 #     TEST_LIB_DIR                  -- The test library directory. All scripts in this directory are loaded by the runner.
 #     TEST_SHIM_DIR                 -- The test shim directory. Scripts in this directory can be included with `use_shim`.
 #     SNAPSHOT_DIR                  -- The snapshot directory.
 #
 runner() {
+	local env_passthrough=()
+	local env_var
+	while read -r env_var; do
+		env_passthrough+=("${env_var}")
+	done < <(env | grep '^TEST_ENV_' | sed 's/^TEST_ENV_//')
+
 	({
 		cd "${TEST_PWD}" && env -i \
-			HOME="$TEST_ENV_HOME" \
-			PATH="$TEST_ENV_PATH" \
-			TMPDIR="$TEST_ENV_TMPDIR" \
+			"${env_passthrough[@]}" \
 			TEST_LIB_DIR="$TEST_LIB_DIR" \
 			TEST_SHIM_DIR="$TEST_SHIM_DIR" \
 			BEST_VERSION="$BEST_VERSION" \
