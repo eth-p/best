@@ -12,7 +12,7 @@ fi
 # Functions:
 # ----------------------------------------------------------------------------------------------------------------------
 show_test() {
-	printc "%{SUITE_NAME}%s:%{TEST_NAME}%s" "$SUITE_NAME" "$TEST_NAME"
+	printc "%{SUITE_NAME}%s:%{TEST_NAME}%s" "$SUITE_NAME" "$(test_name "$TEST_NAME")"
 	if [[ -n "$TEST_DESCRIPTION" ]]; then printc "%{TEST_DESCRIPTION}  -- %s" "$TEST_DESCRIPTION"; fi
 	printc "%{CLEAR}\n"
 }
