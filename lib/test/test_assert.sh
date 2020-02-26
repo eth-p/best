@@ -22,7 +22,7 @@ assert() {
 	__best_ipc_send_test_result "FAIL"
 	__best_ipc_send_test_result_message "Assertion failed: %s"
 	__best_ipc_send_test_result_message_data "$*"
-	return 1
+	exit 1
 }
 
 # Asserts one value equals another value.
