@@ -1,6 +1,7 @@
 # Best: `assert_equal`
 
 Asserts one value equals another value.
+This will exit the test immediately if it fails.
 
 
 

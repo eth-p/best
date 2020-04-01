@@ -1,6 +1,7 @@
 # Best: `assert_greater_or_equal`
 
 Asserts one value is greater than or equal to the other value.
+This will exit the test immediately if it fails.
 
 
 

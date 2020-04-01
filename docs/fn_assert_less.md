@@ -1,6 +1,7 @@
 # Best: `assert_less`
 
 Asserts one value is less than the other value.
+This will exit the test immediately if it fails.
 
 
 

@@ -1,7 +1,6 @@
-# Best: `assert`
+# Best: `expect`
 
-Asserts a statement returns true.
-This will exit the test immediately if it fails.
+Expects a statement returns true.
 
 
 
@@ -20,6 +19,6 @@ This will exit the test immediately if it fails.
 **Example:**
 
 ```bash
-assert [ "hello" = "world" ]
+expect [ "hello" = "world" ]
 ```
 
