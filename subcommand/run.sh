@@ -243,7 +243,7 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 if [[ "$PORCELAIN" = true ]]; then
 	_show_test() {
-		printf "result %s %s" "$REPORT_TEST" "$1"
+		printf "result %s %s" "${SUITE_NAME}:$(test_name "$REPORT_TEST")" "$1"
 		printf " %s" "duration=${REPORT_DURATION}" "messages=${#REPORT_RESULT_MESSAGES[@]}"
 		printf "\n"
 	}
