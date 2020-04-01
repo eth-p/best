@@ -153,7 +153,7 @@ show_suite_name() {
 show_passed_test() {
 	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
 
-	if [[ "$VERBOSE_EVERYTHING" == true ]]; then
+	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -163,11 +163,11 @@ show_failed_test() {
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 
-	if [[ "$SNAPSHOT_SHOW" == true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+	if [[ "$SNAPSHOT_SHOW" = true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
 		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 	fi
 
-	if [[ "$VERBOSE" == true ]]; then
+	if [[ "$VERBOSE" = true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -241,9 +241,53 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" == true ]]; then
-	:
-	# TODO: Porcelain for test results.
+if [[ "$PORCELAIN" = true ]]; then
+	_show_test() {
+		printf "result %s %s" "$REPORT_TEST" "$1"
+		printf " %s" "duration=${REPORT_DURATION}" "messages=${#REPORT_RESULT_MESSAGES[@]}"
+		printf "\n"
+	}
+
+	show_suite_name() {
+		printf "suite %s\n" "$1"
+	}
+
+	show_passed_test() {
+		_show_test "pass"
+		show_report_messages
+	}
+
+	show_failed_test() {
+		_show_test "fail"
+		show_report_messages
+	}
+
+	show_skipped_test() {
+		_show_test "skip"
+		show_report_messages
+	}
+
+	show_report_messages() {
+		local counter=-1
+		local message
+		for message in "${REPORT_RESULT_MESSAGES[@]}"; do
+			((counter++)) || true
+			printf "message %s %s\n" "$counter" "$message"
+		done
+	}
+
+	show_test_output() {
+		:
+	}
+
+	show_snapshot_diff() {
+		:
+	}
+
+	show_suite_totals() {
+		:
+	}
+
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -252,12 +296,12 @@ fi
 OUTPUT_PRINTER=(cat)
 DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
-	OUTPUT_PRINTER=(bat --paging=never --decorations=always --style=numbers \
-		--color="$(if [[ "$COLOR" = true ]]; then echo "always"; else echo "never"; fi)" \
-		--terminal-width="$(($(tput cols) - 8))" \
+	OUTPUT_PRINTER=(bat "--paging=never" "--decorations=always" "--style=numbers" \
+		"--color=$(if [[ "$COLOR" == true ]]; then echo "always"; else echo "never"; fi)" \
+		"--terminal-width=$(($(tput cols) - 8))"
 	)
 
-	DIFF_PRINTER=("${OUTPUT_PRINTER[@]}" --language=diff)
+	DIFF_PRINTER=("${OUTPUT_PRINTER[@]}" "--language=diff")
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------
