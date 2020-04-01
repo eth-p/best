@@ -20,5 +20,6 @@ Expects a statement returns true.
 
 ```bash
 expect [ "hello" = "world" ]
+expect ! false
 ```
 

@@ -21,5 +21,6 @@ This will exit the test immediately if it fails.
 
 ```bash
 assert [ "hello" = "world" ]
+assert ! false
 ```
 

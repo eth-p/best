@@ -13,10 +13,17 @@
 # Example:
 #
 #     assert [ "true" = false ]
+#     assert ! false
 #
 assert() {
-	if "$@" &>/dev/null; then
-		return 0
+	if [[ "$1" = "!" ]]; then
+		if ! "$@" &>/dev/null; then
+			return 0
+		fi
+	else
+		if "$@" &>/dev/null; then
+			return 0
+		fi
 	fi
 
 	__best_ipc_send_test_result "FAIL"
