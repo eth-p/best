@@ -16,7 +16,7 @@
 #
 #     array_contains "world" in "${MY_ARRAY[@]}"
 #
-array_contains() {
+:PREFIX:array_contains() {
 	if [[ "$2" != "in" ]]; then
 		echo "array_contains: expected string 'in' for second argument" 1>&2
 		return 2

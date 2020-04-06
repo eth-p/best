@@ -8,4 +8,4 @@
 # This file contains a list of empty functions that serve no purpose during test execution.
 # The functions themselves will not be documented here.
 
-description() { :; }
+:PREFIX:description() { :; }

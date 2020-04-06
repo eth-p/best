@@ -16,6 +16,6 @@
 #
 #     snapshot stdout
 #
-snapshot() {
+:PREFIX:snapshot() {
 	__best_ipc_send "SNAPSHOT" "$(tr '[:lower:]' '[:upper:]' <<< "$1")"
 }

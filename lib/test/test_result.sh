@@ -15,7 +15,7 @@
 #
 #     fail "Could not find '%s'" "bash"
 #
-fail() {
+:PREFIX:fail() {
 	if [[ $# -eq 0 ]]; then
 		__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "Test called 'fail' function."
 	else
@@ -35,7 +35,7 @@ fail() {
 #
 #     skip "Test disabled on %s." "$(uname -s)"
 #
-skip() {
+:PREFIX:skip() {
 	# shellcheck disable=SC2059
 	if [[ $# -gt 0 ]]; then
 		__best_test_abort "$__BEST_RESULT_ENUM_SKIP" "$(printf "$@")"

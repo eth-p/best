@@ -42,9 +42,9 @@ suite_tests_parse() {
 			END { print "TESTS="(n+1) };
 			$2 == "()" { p=0 };
 			$2 == "()" && /^test([A-Z:_])/ { p=1; n++; print "TESTS_NAME["n"]=\""$1"\"" };
-			/^(    |\t)(description|snapshot).*/ {
+			/^(    |\t)('"${TEST_LIB_PREFIX}"')(description|snapshot).*/ {
 				if (p) {
-					var=toupper($1);
+					var=substr(toupper($1), 1+'"${#TEST_LIB_PREFIX}"');
 					$1="";
 					val=$0;
 

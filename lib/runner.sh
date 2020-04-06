@@ -30,6 +30,7 @@ runner() {
 		cd "${TEST_PWD}" && env -i \
 			"${env_passthrough[@]}" \
 			TEST_LIB_DIR="$TEST_LIB_DIR" \
+			TEST_LIB_PREFIX="$TEST_LIB_PREFIX" \
 			TEST_SHIM_PATH="$TEST_SHIM_PATH" \
 			BEST_VERSION="$BEST_VERSION" \
 			BEST_RUNNER_QUIET="${BEST_RUNNER_QUIET:-false}" \

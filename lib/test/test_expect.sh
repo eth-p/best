@@ -15,7 +15,7 @@
 #     expect [ "true" = false ]
 #     assert ! false
 #
-expect() {
+:PREFIX:expect() {
 	if [[ "$1" = "!" ]]; then
 		if ! "$@" &>/dev/null; then
 			return 0
@@ -41,8 +41,8 @@ expect() {
 #
 #     expect_equal 2 2
 #
-expect_equal() {
-	expect [ "$1" = "$2" ]
+:PREFIX:expect_equal() {
+	:PREFIX:expect [ "$1" = "$2" ]
 	return $?
 }
 
@@ -56,8 +56,8 @@ expect_equal() {
 #
 #     expect_not_equal 1 2
 #
-expect_not_equal() {
-	expect [ "$1" != "$2" ]
+:PREFIX:expect_not_equal() {
+	:PREFIX:expect [ "$1" != "$2" ]
 	return $?
 }
 
@@ -71,8 +71,8 @@ expect_not_equal() {
 #
 #     expect_less 1 2
 #
-expect_less() {
-	expect [ "$1" -lt "$2" ]
+:PREFIX:expect_less() {
+	:PREFIX:expect [ "$1" -lt "$2" ]
 	return $?
 }
 
@@ -86,8 +86,8 @@ expect_less() {
 #
 #     expect_less_or_equal 2 2
 #
-expect_less_or_equal() {
-	expect [ "$1" -le "$2" ]
+:PREFIX:expect_less_or_equal() {
+	:PREFIX:expect [ "$1" -le "$2" ]
 	return $?
 }
 
@@ -101,8 +101,8 @@ expect_less_or_equal() {
 #
 #     expect_greater 5 2
 #
-expect_greater() {
-	expect [ "$1" -gt "$2" ]
+:PREFIX:expect_greater() {
+	:PREFIX:expect [ "$1" -gt "$2" ]
 	return $?
 }
 
@@ -116,7 +116,7 @@ expect_greater() {
 #
 #     expect_greater_or_equal 2 2
 #
-expect_greater_or_equal() {
-	expect [ "$1" -ge "$2" ]
+:PREFIX:expect_greater_or_equal() {
+	:PREFIX:expect [ "$1" -ge "$2" ]
 	return $?
 }
