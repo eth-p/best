@@ -55,6 +55,7 @@ VERBOSE="${VERBOSE:-false}"
 VERBOSE_EVERYTHING=false
 PORCELAIN=false
 DEBUG=false
+STRICT=false
 
 SUBCOMMAND='run'
 
@@ -66,6 +67,7 @@ while shiftopt; do
 		'--verbose')           VERBOSE=true ;;
 		'--VERBOSE')           VERBOSE=true; VERBOSE_EVERYTHING=true ;;
 		'--debug')             VERBOSE=true; DEBUG=true ;;
+		'--strict')            STRICT=true ;;
 		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
 		'--list')              SUBCOMMAND='list' ;;
 		'--repl')              SUBCOMMAND='repl' ;;

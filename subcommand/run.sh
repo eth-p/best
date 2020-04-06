@@ -115,6 +115,10 @@ parse_suite_report() {
 				;;
 			SKIP)
 				RESULT_COLOR="%{RESULT_SKIP}"
+				if "$STRICT"; then
+					COMMAND_EXIT=2
+					RESULT_COLOR="%{RESULT_FAIL}"
+				fi
 				((TOTAL_SKIPPED++)) || true
 				show_skipped_test
 				;;
@@ -214,7 +218,12 @@ show_suite_totals() {
 	printc "    FAIL: %{RESULT_FAIL}%d%{CLEAR} / %d\n" "$TOTAL_FAILED" "$TOTAL_ALL"
 
 	if [[ "$TOTAL_SKIPPED" -gt 0 ]]; then
-		printc "    SKIP: %{RESULT_SKIP}%d%{CLEAR} / %d\n" "$TOTAL_SKIPPED" "$TOTAL_ALL"
+		local summary_color="%{RESULT_SKIP}"
+		if "$STRICT"; then
+			summary_color="%{RESULT_FAIL}"
+		fi
+
+		printc "    SKIP: ${summary_color}%d%{CLEAR} / %d\n" "$TOTAL_SKIPPED" "$TOTAL_ALL"
 	fi
 
 	# Print summaries.

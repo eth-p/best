@@ -22,6 +22,7 @@ bin/best.sh [options] [test...]
 | `--snapshot:show`     |            | Prints the difference between test output and output snapshots. |
 | `--snapshot:skip`     |            | Skips snapshot testing.                                      |
 | `--verbose`           |            | Prints STDOUT and STDERR of failed tests.                    |
+| `--strict`            |            | Treat skipped tests as though they were failed tests.        |
 | `--VERBOSE`           |            | Prints STDOUT and STDERR of all tests.                       |
 | `--debug`             |            | Prints debug information.<br />This only prints information about `best` itself. |
 | `--porcelain`         |            | Changes the printing mode to something machine-friendly.     |
