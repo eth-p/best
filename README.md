@@ -74,6 +74,7 @@ test:my_test() {
 - [`expect_greater_or_equal [a] [b]`](docs/fn_expect_greater_or_equal.md)
 - [`fail [pattern] [...]`](docs/fn_fail.md)
 - [`snapshot ["stdout"|"stderr"]`](docs/fn_snapshot.md)
+- [`array_contains [value] in [...]`](docs/fn_assert.md)
 
 ###
 
