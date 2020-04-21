@@ -72,6 +72,7 @@ printc_init << "END"
 	SUITE_NAME        \x1B[35m
 	TEST_NAME         \x1B[34m
 	TEST_DESCRIPTION  \x1B[0m
+	FILE              \x1B[39m
 
 	RESULT_PASS \x1B[32m
 	RESULT_SKIP \x1B[37m

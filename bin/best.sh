@@ -71,6 +71,7 @@ while shiftopt; do
 		'--strict')            STRICT=true ;;
 		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
 		'--list')              SUBCOMMAND='list' ;;
+		'--list-suites')       SUBCOMMAND='list-suites' ;;
 		'--repl')              SUBCOMMAND='repl' ;;
 		'--color')             COLOR=false printc_init true ;;
 		'--no-color')          COLOR=false printc_init false ;;
