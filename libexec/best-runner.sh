@@ -69,6 +69,28 @@ __best_run_test() {
 	__best_cleanup_files+=("$stdout" "$stderr")
 }
 
+# Checks to see if a test function name is valid.
+#
+# Arguments:
+#     $1  [string]    -- The test function to execute.
+#
+# Returns:
+#     0  -- If the function is valid.
+#     1  -- Otherwise.
+__best_check_test_valid() {
+	# Check to make sure a valid test was specified.
+	if [[ -z "$1" ]]; then
+		__best_runner_message_error "No test specified."
+		return 1
+	fi
+
+	if ! type -t "$1" &>/dev/null; then
+		__best_runner_message_error "Unknown test specified."
+		return 1
+	fi
+
+	return 0
+}
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Commands:
@@ -94,21 +116,7 @@ __best_cmd_LOAD() {
 #     $1  [string]    -- The function to execute.
 #
 __best_cmd_TEST() {
-	local test="$1"
-	local test_safe="${test//[^A-Za-z_]/_}"
-
-	# Check to make sure a valid test was specified.
-	if [[ -z "$test" ]]; then
-		__best_runner_message_error "No test specified."
-		return 1
-	fi
-
-	if ! type -t "$test" &>/dev/null; then
-		__best_runner_message_error "Unknown test specified."
-		return 1
-	fi
-
-	# Run the test.
+	__best_check_test_valid "$1" || return $?
 	__best_run_test "$@"
 }
 
