@@ -65,6 +65,7 @@ test:my_test() {
 - [`assert_less_or_equal [a] [b]`](docs/fn_assert_less_or_equal.md)
 - [`assert_greater [a] [b]`](docs/fn_assert_greater.md)
 - [`assert_greater_or_equal [a] [b]`](docs/fn_assert_greater_or_equal.md)
+- [`assert_exit [code]`](docs/fn_assert_exit.md)
 - [`expect [function...]`](docs/fn_expect.md)
 - [`expect_equal [a] [b]`](docs/fn_expect_equal.md)
 - [`expect_not_equal [a] [b]`](docs/fn_expect_not_equal.md)

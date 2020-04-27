@@ -121,3 +121,17 @@
 	:PREFIX:assert [ "$1" -ge "$2" ]
 	return $?
 }
+
+
+# Asserts that the test exits with a specific exit code.
+#
+# Arguments:
+#     $1  [number]    -- The expected exit code.
+#
+# Example:
+#
+#     assert_exit 1
+#
+:PREFIX:assert_exit() {
+	__best_ipc_send "TEST_SHOULD_COMPLETE_WITH" "$1"
+}

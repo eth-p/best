@@ -17,6 +17,7 @@ __best_runner_report() {
 	REPORT_OUTPUT_STDOUT=''
 	REPORT_OUTPUT_STDERR=''
 	REPORT_SNAPSHOT_DIFF=''
+	REPORT_EXIT_EXPECTED=0
 	__REPORT_ABORT=false
 	__REPORT_CHECK_SNAPSHOT_STDOUT=false
 	__REPORT_CHECK_SNAPSHOT_STDERR=false
@@ -37,7 +38,7 @@ __best_runner_report() {
 
 	# Calculate the result if not specified.
 	if [[ -z "$REPORT_RESULT" ]]; then
-		if [[ "$REPORT_EXIT" -eq 0 ]]; then
+		if [[ "$REPORT_EXIT" -eq "$REPORT_EXIT_EXPECTED" ]]; then
 			REPORT_RESULT="PASS"
 		else
 			REPORT_RESULT='FAIL'
@@ -60,7 +61,11 @@ __best_runner_report() {
 		if [[ "$REPORT_EXIT" = "127" && -f "$REPORT_OUTPUT_STDERR" ]]; then
 			REPORT_RESULT_MESSAGES+=("$(tail -n1 "$REPORT_OUTPUT_STDERR")")
 		else
-			REPORT_RESULT_MESSAGES+=("Exited with code $REPORT_EXIT.")
+			if [[ "$REPORT_EXIT_EXPECTED" -eq 0 ]]; then
+				REPORT_RESULT_MESSAGES+=("Exited with code $REPORT_EXIT.")
+			else
+				REPORT_RESULT_MESSAGES+=("Exited with code $REPORT_EXIT, but expected code $REPORT_EXIT_EXPECTED.")
+			fi
 		fi
 	fi
 
@@ -88,6 +93,11 @@ __best_runner_report:parse:TEST() {
 __best_runner_report:parse:TEST_COMPLETE() {
 	REPORT_EXIT="$1"
 }
+
+__best_runner_report:parse:TEST_SHOULD_COMPLETE_WITH() {
+	REPORT_EXIT_EXPECTED="$1"
+}
+
 
 __best_runner_report:parse:TEST_OUTPUT() {
 	local type
