@@ -24,7 +24,7 @@ __best_cleanup_files=()
 	__best_runner_message_error()  { __best_ipc_send_crash "$(printf "$@")"; }
 }
 
-# An internal command that executes a test.
+# An internal function that executes a test function inside a subshell.
 #
 # Arguments:
 #     $1  [string]    -- The test function.
@@ -36,6 +36,35 @@ __best_run() {
 		"$1"
 	)
 	return $?
+}
+
+# An internal function that runs a test.
+# This performs all the necessary setup and cleanup before calling __best_run to run the test function.
+#
+# Arguments:
+#     $1  [string]    -- The function to execute.
+#
+__best_run_test() {
+	# Set variables.
+	local stdout="${TMPDIR}/$$.${test_safe}.stdout"
+	local stderr="${TMPDIR}/$$.${test_safe}.stderr"
+
+	# Print the info.
+	__best_ipc_send_test_name "$test"
+	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDOUT" "$stdout"
+	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDERR" "$stderr"
+
+	# Run the test.
+	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_START" "$(__best_time)"
+	__best_run "$1" \
+		1> "$stdout" \
+		2> "$stderr"
+	local status="$?"
+	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_FINISH" "$(__best_time)"
+	__best_ipc_send_test_complete "$status"
+
+	# Update global variables.
+	__best_cleanup_files+=("$stdout" "$stderr")
 }
 
 
@@ -77,26 +106,8 @@ __best_cmd_TEST() {
 		return 1
 	fi
 
-	# Set variables.
-	local stdout="${TMPDIR}/$$.${test_safe}.stdout"
-	local stderr="${TMPDIR}/$$.${test_safe}.stderr"
-
-	# Print the info.
-	__best_ipc_send_test_name "$test"
-	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDOUT" "$stdout"
-	__best_ipc_send_test_output "$__BEST_OUTPUT_ENUM_STDERR" "$stderr"
-
 	# Run the test.
-	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_START" "$(__best_time)"
-	__best_run "$1" \
-		1> "$stdout" \
-		2> "$stderr"
-	local status="$?"
-	__best_ipc_send_test_timestamp "$__BEST_TIMESTAMP_ENUM_FINISH" "$(__best_time)"
-	__best_ipc_send_test_complete "$status"
-
-	# Update global variables.
-	__best_cleanup_files+=("$stdout" "$stderr")
+	__best_run_test "$@"
 }
 
 # REPL: EVAL
