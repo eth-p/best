@@ -36,8 +36,6 @@ __best_runner_main() {
 	command_upper="$(tr '[:lower:]' '[:upper:]' <<< "$command")"
 	if ! [[ "$(type -t __best_cmd_"${command_upper}" 2>&1)" =~ function$ ]]; then
 		__best_runner_message_error "unknown command"
-	elif [[ "${command_upper}" = "TEST" && "$BEST_RUNNER_QUIET" = true ]]; then
-		__best_runner_main_test "$args"
 	else
 		__best_cmd_"${command_upper}" "$args" 3>&1
 	fi
@@ -45,7 +43,20 @@ __best_runner_main() {
 	return 0
 }
 
-__best_runner_main_test() {
+__best_runner_message_success() {
+	printc "%{SUCCESS}%-${__best_repl_padding}s> $1%{CLEAR}\n" "OK" "${@:2}"
+}
+
+__best_runner_message_error() {
+	printc "%{ERROR}%-${__best_repl_padding}s> $1%{CLEAR}\n" "ERR" "${@:2}"
+}
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Override Commands:
+# ----------------------------------------------------------------------------------------------------------------------
+
+__best_cmd_TEST() {
 	local errored=false
 
 	# Check to make sure a valid test was specified.
@@ -65,7 +76,7 @@ __best_runner_main_test() {
 	fi
 
 	# Run the test.
-	__best_runner_report < <(__best_cmd_TEST "$1" 3>&1)
+	__best_runner_report < <(__best_run_test "$1" 3>&1)
 	if [[ $? -ne 0 ]]; then errored=true; fi
 
 	# Add the output files to cleanup.
@@ -100,14 +111,6 @@ __best_runner_main_test() {
 	fi
 
 	printf "\n"
-}
-
-__best_runner_message_success() {
-	printc "%{SUCCESS}%-${__best_repl_padding}s> $1%{CLEAR}\n" "OK" "${@:2}"
-}
-
-__best_runner_message_error() {
-	printc "%{ERROR}%-${__best_repl_padding}s> $1%{CLEAR}\n" "ERR" "${@:2}"
 }
 
 
