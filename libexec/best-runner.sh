@@ -104,6 +104,7 @@ __best_async_helper_wait() {
 			if ! kill -0 "$jobpid" 2> /dev/null; then
 				__best_ipc_send "ASYNC_END" "$jobpid"
 				unset __best_async_pids["$index"]
+				__best_async_pids=("${__best_async_pids[@]}")
 				return 0
 			fi
 			((index++)) || true
