@@ -47,7 +47,7 @@ __best_run() {
 __best_run_test() {
 	# Set variables.
 	local test="$1"
-	local test_safe="${test//[^A-Za-z_]/_}"
+	local test_safe="${test//[^A-Za-z0-9_]/_}"
 	local stdout="${TMPDIR}/$$.${test_safe}.stdout"
 	local stderr="${TMPDIR}/$$.${test_safe}.stderr"
 
