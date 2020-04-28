@@ -48,6 +48,20 @@ runner:run() {
 	printf "\n" 1>&3
 }
 
+runner:async_run() {
+	printf "ASYNC_TEST " 1>&3
+	printf "%q " "$@" 1>&3
+	printf "\n" 1>&3
+}
+
+runner:async_wait_next() {
+	printf "ASYNC_WAIT_NEXT\n" 1>&3
+}
+
+runner:async_wait_all() {
+	printf "ASYNC_WAIT_ALL\n" 1>&3
+}
+
 runner:skip() {
 	printf "ECHO IGNORE %s\n" "$1" 1>&3
 }

@@ -21,7 +21,22 @@ fi
 
 run_test() {
 	printvd "running: %s\n" "$TEST_NAME"
-	runner:run "$TEST_NAME"
+
+	# If we are running in serial, use the direct runner:run command.
+	if [[ "$PARALLEL" -eq 1 ]]; then
+		runner:run "$TEST_NAME"
+		return $?
+	fi
+
+	# If we already have the maximum number of jobs, tell the runner to wait for one to complete.
+	if [[ "$JOBS_INITIALIZED" -ge "$PARALLEL" ]]; then
+		runner:async_wait_next
+		((JOBS_INITIALIZED--)) || true
+	fi
+
+	# Tell the runenr to start a new async job.
+	runner:async_run "$TEST_NAME"
+	((JOBS_INITIALIZED++)) || true
 }
 
 run_test_maybe() {
@@ -49,6 +64,7 @@ run_suite() {
 	SUITE_FILE="$1"
 	SUITE_NAME="$(suite_name "$SUITE_FILE")"
 	REPORT_SUITE="$SUITE_FILE"
+	JOBS_INITIALIZED=0
 
 	TOTAL_PASSED=0
 	TOTAL_FAILED=0
@@ -78,6 +94,11 @@ run_suite() {
 					TEST_ID="${SUITE_NAME}:$(test_name "${TEST_NAME}")"
 					run_test_maybe
 				done
+
+				# Tell the runner to wait for the remaining jobs.
+				if [[ "$PARALLEL" -ne 1 ]]; then
+					runner:async_wait_all
+				fi
 			}
 
 			runner:test_teardown

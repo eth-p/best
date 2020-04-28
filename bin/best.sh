@@ -57,6 +57,7 @@ VERBOSE_EVERYTHING=false
 PORCELAIN=false
 DEBUG=false
 STRICT=false
+PARALLEL=1
 
 SUBCOMMAND='run'
 
@@ -65,6 +66,7 @@ OPT_ARGV=()
 while shiftopt; do
 	case "$OPT" in
 		'--suite')             shiftval; OPT_SUITES+=("$OPT_VAL") ;;
+		'--jobs'|'-j')         shiftval; PARALLEL="$OPT_VAL" ;;
 		'--verbose')           VERBOSE=true ;;
 		'--VERBOSE')           VERBOSE=true; VERBOSE_EVERYTHING=true ;;
 		'--debug')             VERBOSE=true; DEBUG=true ;;
