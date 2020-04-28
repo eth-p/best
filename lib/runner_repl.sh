@@ -125,7 +125,9 @@ __best_cmd_HELP() {
 
 	local command;
 	while read -r command; do
-		printc "%{LIST_ITEM}%s%{CLEAR}\n" "$command"
+		if ! [[ "$command" =~ ^ASYNC ]]; then
+			printc "%{LIST_ITEM}%s%{CLEAR}\n" "$command"
+		fi
 	done < <(declare -F | grep '^declare -f __best_cmd_' | sed 's/^declare -f __best_cmd_//')
 }
 

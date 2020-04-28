@@ -192,7 +192,7 @@ __best_cmd_ASYNC_TEST() {
 
 # REPL: ASYNC_WAIT_NEXT
 # Waits for one of the async test to complete.
-# If the completed test is the first one in the list, this will print its report.
+# If the completed test is the oldest one executed, this will print its report.
 __best_cmd_ASYNC_WAIT_NEXT() {
 	if [[ "${#__best_async_pids[@]}" -eq 0 ]]; then return 0; fi
 
@@ -200,9 +200,8 @@ __best_cmd_ASYNC_WAIT_NEXT() {
 	__best_async_helper_print || true
 }
 
-# REPL: ASYNC_WAIT_NEXT
-# Waits for one of the async test to complete.
-# If the completed test is the first one in the list, this will print its report.
+# REPL: ASYNC_WAIT_ALL
+# Waits for all of the async test to complete, and prints their reports.
 __best_cmd_ASYNC_WAIT_ALL() {
 	if [[ "${#__best_async_pids[@]}" -eq 0 ]]; then return 0; fi
 
