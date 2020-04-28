@@ -17,6 +17,8 @@ __BEST_RUNNER_LIB="${__BEST_ROOT}/lib/test_runner"
 }
 # ----------------------------------------------------------------------------------------------------------------------
 __best_cleanup_files=()
+__best_async_pids=()
+__best_async_reports=()
 
 # shellcheck disable=SC2059
 {
@@ -84,12 +86,48 @@ __best_check_test_valid() {
 		return 1
 	fi
 
-	if ! type -t "$1" &>/dev/null; then
+	if ! type -t "$1" &> /dev/null; then
 		__best_runner_message_error "Unknown test specified."
 		return 1
 	fi
 
 	return 0
+}
+
+# Waits for the next async test job to complete.
+__best_async_helper_wait() {
+	# `wait -n` doesn't work, so we need to poll.
+	local jobpid
+	while true; do
+		local index=0
+		for jobpid in "${__best_async_pids[@]}"; do
+			if ! kill -0 "$jobpid" 2> /dev/null; then
+				__best_ipc_send "ASYNC_END" "$jobpid"
+				unset __best_async_pids["$index"]
+				return 0
+			fi
+			((index++)) || true
+		done
+		sleep 0.01
+	done
+}
+
+# Attempts to print the report of the oldest async test jobs spawned.
+#
+# If the oldest job is not complete yet, this will print nothing and return 1.
+# This is to prevent incorrect ordering.
+__best_async_helper_print() {
+	local status=1
+
+	# If the first report is complete, print it.
+	while [[ -f "${__best_async_reports[0]}.complete" ]]; do
+		cat "${__best_async_reports[0]}.complete"
+		rm "${__best_async_reports[0]}.complete"
+		__best_async_reports=("${__best_async_reports[@]:1}")
+		status=0
+	done
+
+	return $status
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -120,6 +158,61 @@ __best_cmd_TEST() {
 	__best_run_test "$@"
 }
 
+# REPL: ASYNC_TEST
+# Execute a test function asynchronously.
+#
+# Arguments:
+#     $1  [string]    -- The function to execute.
+#
+__best_cmd_ASYNC_TEST() {
+	__best_check_test_valid "$1" || return $?
+
+	{
+		# Read the test report file name.
+		local reportfile
+		read -r reportfile
+	} < <({
+		# Run the test in the background.
+		local reportfile="${TMPDIR}/$$.async_${BASHPID}.report"
+		printf "%s\n" "$reportfile"
+
+		exec 3> "$reportfile"
+		__best_run_test  "$@"
+		mv "$reportfile" "${reportfile}.complete"
+	})
+
+	# Read the job pid and store the pid/report file in an array.
+	local jobpid="$!"
+	__best_async_pids+=("$jobpid")
+	__best_async_reports+=("$reportfile")
+
+	# Send the async test IPC and return.
+	__best_ipc_send "ASYNC_TEST" "$jobpid"
+}
+
+# REPL: ASYNC_WAIT_NEXT
+# Waits for one of the async test to complete.
+# If the completed test is the first one in the list, this will print its report.
+__best_cmd_ASYNC_WAIT_NEXT() {
+	if [[ "${#__best_async_pids[@]}" -eq 0 ]]; then return 0; fi
+
+	__best_async_helper_wait
+	__best_async_helper_print || true
+}
+
+# REPL: ASYNC_WAIT_NEXT
+# Waits for one of the async test to complete.
+# If the completed test is the first one in the list, this will print its report.
+__best_cmd_ASYNC_WAIT_ALL() {
+	if [[ "${#__best_async_pids[@]}" -eq 0 ]]; then return 0; fi
+
+	# Wait for all the jobs and try to print all the reports.
+	while [[ "${#__best_async_pids[@]}" -gt 0 ]]; do
+		__best_async_helper_wait
+		__best_async_helper_print || true
+	done
+}
+
 # REPL: EVAL
 # Evaluate a string.
 #
@@ -143,7 +236,6 @@ __best_cmd_EVAL() {
 __best_cmd_ECHO() {
 	printf "%s\n" "$1" 1>&3
 }
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Main:
