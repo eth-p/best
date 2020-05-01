@@ -36,6 +36,21 @@ bin/best.sh [options] [test...]
 | ---------- | -------------------------------------------- |
 | `--list`   | Prints a list of tests in the loaded suites. |
 
+**Environment Variables:**
+
+| Variable           | Description                                                  | Default          |
+| ------------------ | ------------------------------------------------------------ | ---------------- |
+| `$BEST_BASH`       | A path to the version of Bash to execute tests with.         |                  |
+| `$BEST_ENV_TMPDIR` | The value of `$TMPDIR` inside the testing environment.       | Inherited        |
+| `$BEST_ENV_PATH`   | The value of `$PATH` inside the testing environment.         | Inherited        |
+| `$BEST_ENV_HOME`   | The value of `$HOME` inside the testing environment.         | Inherited        |
+| `$BEST_ENV_TERM`   | The value of `$TERM` inside the testing environment.         | `xterm-color`    |
+| `$TEST_LIB_PREFIX` | A variable that prepends a sequence to the test functions. This can be used to prevent function name conflicts with `best` and the scripts that it's testing. | None             |
+| `$TEST_SHIM_PATH`  | The path to the shims loadable by `use_shim`.                | None             |
+| `$TEST_DIR`        | The directory where test suites are stored.                  | `$PWD/test`      |
+| `$SNAPSHOT_DIR`    | The directory where snapshots are stored.                    | `$PWD/test-data` |
+
+
 
 
 
@@ -75,10 +90,13 @@ test:my_test() {
 - [`expect_greater [a] [b]`](docs/fn_expect_greater.md)
 - [`expect_greater_or_equal [a] [b]`](docs/fn_expect_greater_or_equal.md)
 - [`fail [pattern] [...]`](docs/fn_fail.md)
-- [`snapshot ["stdout"|"stderr"]`](docs/fn_snapshot.md)
+- [`skip [pattern] [...]`](docs/fn_skip.md)
 - [`array_contains [value] in [...]`](docs/fn_assert.md)
+- [`snapshot ["stdout"|"stderr"]`](docs/fn_snapshot.md)
+- [`description [message]`](docs/fn_description.md)
+- [`use_shim [name]`](docs/fn_use_shim.md)
 
-###
+
 
 ### Setup / Teardown
 
@@ -87,15 +105,15 @@ The former will be called when the suite is loaded, and the latter will be calle
 
 ```bash
 setup() {
-	MY_VAR=3
+    MY_VAR=3
 }
 
 teardown() {
-	unset MY_VAR
+    unset MY_VAR
 }
 
 test:check_setup() {
-  assert_equal "$MY_VAR" 3
+    assert_equal "$MY_VAR" 3
 }
 ```
 
