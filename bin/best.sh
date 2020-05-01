@@ -23,9 +23,8 @@ export BEST_RUNNER="${ROOT}/libexec/best-runner.sh"
 
 # Configurable:
 export BEST_BASH="${BEST_BASH:-${BASH}}"
-
 export TEST_ENV_PATH="${TEST_ENV_PATH:-${ROOT}/share/shim-bin:${PATH}}"
-export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR}}"
+export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR:-$(mktemp -d)}}"
 export TEST_ENV_HOME="${TEST_ENV_HOME:-${HOME}}"
 export TEST_ENV_TERM="${TEST_ENV_TERM:-xterm-color}"
 
