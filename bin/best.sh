@@ -30,7 +30,7 @@ export TEST_ENV_TERM="${TEST_ENV_TERM:-xterm-color}"
 
 export TEST_LIB_PREFIX="${TEST_LIB_PREFIX}"
 export TEST_LIB_DIR="${TEST_LIB_DIR:-${LIB}/test}"
-export TEST_SHIM_PATH="${TEST_SHIM_PATH:+${TEST_SHIM_PATH}}:${ROOT}/share/shim"
+export TEST_SHIM_PATH="${TEST_SHIM_PATH:+${TEST_SHIM_PATH}:}${ROOT}/share/shim"
 export TEST_DIR="${TEST_DIR:-${PWD}/test}"
 
 export SNAPSHOT_DIR="${SNAPSHOT_DIR:-${PWD}/test-snapshots}"
