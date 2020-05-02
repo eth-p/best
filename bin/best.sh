@@ -24,7 +24,7 @@ export BEST_RUNNER="${ROOT}/libexec/best-runner.sh"
 # Configurable:
 export BEST_BASH="${BEST_BASH:-${BASH}}"
 export TEST_ENV_PATH="${TEST_ENV_PATH:-${ROOT}/share/shim-bin:${PATH}}"
-export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR:-$(mktemp -d)}}"
+export TEST_ENV_TMPDIR="${TEST_ENV_TMPDIR:-${TMPDIR}}"
 export TEST_ENV_HOME="${TEST_ENV_HOME:-${HOME}}"
 export TEST_ENV_TERM="${TEST_ENV_TERM:-xterm-color}"
 
@@ -46,6 +46,13 @@ fi
 COLOR=false
 if [[ -t 1 ]]; then
 	COLOR=true
+fi
+
+CLEANUP_FILES=()
+CLEANUP_DIRS=()
+if [[ -z "$TEST_ENV_TMPDIR" ]]; then
+	TEST_ENV_TMPDIR="$(mktemp -d)"
+	CLEANUP_DIRS+=("$TEST_ENV_TMPDIR")
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -98,4 +105,14 @@ suite_files "${TEST_DIR}" "${OPT_SUITES[@]}" || exit $?
 # ----------------------------------------------------------------------------------------------------------------------
 # Main:
 # ----------------------------------------------------------------------------------------------------------------------
-source "${ROOT}/subcommand/${SUBCOMMAND}.sh"
+# Execute
+( source "${ROOT}/subcommand/${SUBCOMMAND}.sh" )
+exit=$?
+
+# Cleanup
+for dir in "${CLEANUP_DIRS[@]}"; do
+	rmdir "${dir}"
+done
+
+# Exit
+exit $exit
