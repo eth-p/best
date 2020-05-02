@@ -177,30 +177,19 @@ show_suite_name() {
 
 show_passed_test() {
 	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
-
-	if [[ "$VERBOSE_EVERYTHING" = true ]]; then
-		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
-		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
-	fi
+	show_test_outputs
 }
 
 show_failed_test() {
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
-
-	if [[ "$SNAPSHOT_SHOW" = true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
-		show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
-	fi
-
-	if [[ "$VERBOSE" = true ]]; then
-		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
-		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
-	fi
+	show_test_outputs
 }
 
 show_skipped_test() {
 	printc "[${RESULT_COLOR}SKIP%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
+	show_test_outputs
 }
 
 show_report_messages() {
@@ -211,6 +200,20 @@ show_report_messages() {
 	else
 		printc "${RESULT_COLOR} :: %s%{CLEAR}\n" "${REPORT_RESULT_MESSAGES[0]}"
 		printc "${RESULT_COLOR} ....                       :: %s%{CLEAR}\n" "${REPORT_RESULT_MESSAGES[@]:1}"
+	fi
+}
+
+show_test_outputs() {
+	if [[ "$REPORT_RESULT" = "FAIL" ]]; then
+		if [[ "$SNAPSHOT_SHOW" = true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+			show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
+		fi
+	fi
+
+	if [[ "$REPORT_RESULT" = "PASS" && "$VERBOSE_EVERYTHING" = true ]] \
+	|| [[ "$REPORT_RESULT" != "PASS" && "$VERBOSE" = true ]]; then
+		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
+		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
 }
 
@@ -285,16 +288,19 @@ if [[ "$PORCELAIN" = true ]]; then
 	show_passed_test() {
 		_show_test "pass"
 		show_report_messages
+		show_test_outputs
 	}
 
 	show_failed_test() {
 		_show_test "fail"
 		show_report_messages
+		show_test_outputs
 	}
 
 	show_skipped_test() {
 		_show_test "skip"
 		show_report_messages
+		show_test_outputs
 	}
 
 	show_report_messages() {
@@ -307,11 +313,13 @@ if [[ "$PORCELAIN" = true ]]; then
 	}
 
 	show_test_output() {
-		:
+		printf "output %s\n" "$1"
+		sed $'s/^/\t/' < "$2"
 	}
 
 	show_snapshot_diff() {
-		:
+		printf "output SNAPSHOT_DIFFERENCE\n"
+		sed $'s/^/\t/' <<< "$2"
 	}
 
 	show_suite_totals() {
