@@ -144,4 +144,4 @@ print_header() {
 # ----------------------------------------------------------------------------------------------------------------------
 H_SEPARATOR_CHAR="-"
 V_SEPARATOR_CHAR="|"
-H_SEPARATOR="$(printf "%$(stty size | cut -d' ' -f2)s" "" | tr ' ' "$H_SEPARATOR_CHAR")"
+H_SEPARATOR="$(printf "%$(term_width)s" "" | tr ' ' "$H_SEPARATOR_CHAR")"

@@ -9,6 +9,7 @@ ROOT="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(dirname "$(readl
 LIB="${ROOT}/lib"
 
 source "${LIB}/manager.sh"
+source "${LIB}/term.sh"
 source "${LIB}/print.sh"
 source "${LIB}/print_util.sh"
 source "${LIB}/opt.sh"

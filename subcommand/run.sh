@@ -336,7 +336,7 @@ DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
 	OUTPUT_PRINTER=(bat "--paging=never" "--decorations=always" "--style=numbers" \
 		"--color=$(if [[ "$COLOR" == true ]]; then echo "always"; else echo "never"; fi)" \
-		"--terminal-width=$(($(stty size | cut -d' ' -f2) - 8))"
+		"--terminal-width=$(($(term_width) - 8))"
 	)
 
 	DIFF_PRINTER=("${OUTPUT_PRINTER[@]}" "--language=diff")
