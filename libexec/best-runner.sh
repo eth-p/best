@@ -12,7 +12,7 @@ __BEST_RUNNER_LIB="${__BEST_ROOT}/lib/test_runner"
 {
 	shopt -s nullglob
 	for __file in "${__BEST_RUNNER_LIB}"/*.sh; do source "$__file"; done
-	for __file in "${TEST_LIB_DIR}"/*; do source <(__best_lib_preprocess < "$__file"); done
+	for __file in "${TEST_LIB_DIR}"/*; do eval "$(__best_lib_preprocess < "$__file")"; done
 	shopt -u nullglob
 }
 # ----------------------------------------------------------------------------------------------------------------------
