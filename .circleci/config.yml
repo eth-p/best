@@ -1,0 +1,76 @@
+version: 2.1
+
+executors:
+    bash_latest:
+        docker:
+            - image: bash:latest
+        environment:
+            TERM: xterm
+
+    bash_3:
+        docker:
+            - image: bash:3.2
+        environment:
+            TERM: xterm
+
+
+commands:
+    setup:
+        description: "Set up the environment needed to test and run the scripts."
+        steps:
+            - run:
+                  name: "APK: Update cache."
+                  command: apk update
+            - run:
+                  name: "Setup: Install dependencies."
+                  command: apk add git
+            - run:
+                  name: "Setup: Install runtime packages."
+                  command: apk add ncurses coreutils gawk
+            - checkout
+
+    best:
+        description: "Run tests."
+        parameters:
+            shim_directory:
+                type: string
+                default: "shim"
+            test_directory:
+                type: string
+                default: "test"
+            data_directory:
+                type: string
+                default: "data"
+            snapshot_directory:
+                type: string
+                default: "snapshots"
+        steps:
+            - run:
+                  name: "Run tests."
+                  working_directory: tests
+                  command: |
+                      TEST_SHIM_PATH="<<parameters.shim_directory>>" \
+                      TEST_DIR="<<parameters.test_directory>>" \
+                      TEST_PWD="<<parameters.data_directory>>" \
+                      SNAPSHOT_DIR="<<parameters.snapshot_directory>>" \
+                      "../bin/best.sh" --verbose --strict --snapshot:show
+
+jobs:
+    test:
+        executor: bash_latest
+        steps:
+            - setup
+            - best
+
+    test-bash-3:
+        executor: bash_3
+        steps:
+            - setup
+            - best
+
+workflows:
+    version: 2
+    default:
+        jobs:
+            - test
+            - test-bash-3
