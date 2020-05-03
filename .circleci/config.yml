@@ -28,6 +28,9 @@ commands:
                   name: "Setup: Install runtime packages."
                   command: apk add ncurses coreutils gawk
             - checkout
+            - run:
+                  name: "Checkout tests"
+                  command: git submodule update --init --recursive
 
     best:
         description: "Run tests."
