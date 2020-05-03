@@ -110,7 +110,7 @@ run_suite() {
 	}); then
 		# The runner crashed.
 		# We shouldn't show any summaries.
-		return 0
+		return 1
 	fi
 
 	TOTAL_ALL="$((TOTAL_PASSED + TOTAL_FAILED + TOTAL_SKIPPED))"
