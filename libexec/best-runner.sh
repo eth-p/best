@@ -173,6 +173,11 @@ __best_cmd_ASYNC_TEST() {
 		local reportfile
 		read -r reportfile
 	} < <({
+		# Set BASHPID for bash < 4.
+		if [[ -z "$BASHPID" ]]; then
+			BASHPID="$(bash -c 'echo $PPID')"
+		fi
+
 		# Run the test in the background.
 		local reportfile="${TMPDIR}/$$.async_${BASHPID}.report"
 		printf "%s\n" "$reportfile"
