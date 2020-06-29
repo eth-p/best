@@ -11,7 +11,7 @@
 #     $1  [string] -- The test suite file.
 #
 suite_test_names() {
-	env -i "${BEST_BASH}" -c "source \"$(printf '%q' "$1")\"; declare -F" \
+	env -i "${BEST_BASH}" -c "source $(printf '%q' "$1"); declare -F" \
 		| grep '^declare -f test[A-Z:_].*$' \
 		| sed 's/^declare -f //'
 }
@@ -30,7 +30,7 @@ suite_test_names() {
 #     TESTS=1
 #
 suite_tests_parse() {
-	env -i "${BEST_BASH}" -c "source \"$(printf '%q' "$1")\"; declare -f" \
+	env -i "${BEST_BASH}" -c "source $(printf '%q' "$1"); declare -f" \
 		| awk '
 			BEGIN {
 				n=-1
