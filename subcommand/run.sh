@@ -271,6 +271,7 @@ if [[ "$DEBUG" = true ]]; then
 	}
 fi
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
@@ -328,9 +329,14 @@ if [[ "$PORCELAIN" = true ]]; then
 
 fi
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Init:
 # ----------------------------------------------------------------------------------------------------------------------
+
+# Determine which commands to use for printing files.
+#   If `bat` is installed, this will prefer using bat.
+#   Otherwise, this will just use cat.
 OUTPUT_PRINTER=(cat)
 DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
@@ -340,6 +346,16 @@ if command -v bat &> /dev/null; then
 	)
 
 	DIFF_PRINTER=("${OUTPUT_PRINTER[@]}" "--language=diff")
+fi
+
+# If -j is unspecified, determine the number of cores to use.
+if [[ "$PARALLEL" = "auto" ]]; then
+	PARALLEL="$(getconf _NPROCESSORS_ONLN 2>/dev/null)"
+	printvd "detected system core count as '%s'\n" "$PARALLEL"
+	if ! [[ "$PARALLEL" -gt 0 ]] 2>/dev/null; then
+		printvd "detected system core count is invalid. falling back to 1\n"
+		PARALLEL=1 # If it can't be parsed as a number, fall back to one parallel test.
+	fi
 fi
 
 # ----------------------------------------------------------------------------------------------------------------------

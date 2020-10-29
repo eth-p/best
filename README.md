@@ -17,7 +17,7 @@ bin/best.sh [options] [test...]
 
 | Option                | Value      | Description                                                  |
 | --------------------- | ---------- | ------------------------------------------------------------ |
-| `--jobs` / `-j`       | \[number\] | Specify the number of tests to run in parallel. Defaults to 1. |
+| `--jobs` / `-j`       | \[number\] | Specify the number of tests to run in parallel. Defaults to the current number of logical cores. |
 | `--suite`             | \[string\] | Loads a specific test suite.<br />If this is absent, all suites in `$PWD/test` will be loaded. |
 | `--snapshot:generate` |            | Forces all snapshots to be regenerated.                      |
 | `--snapshot:show`     |            | Prints the difference between test output and output snapshots. |
