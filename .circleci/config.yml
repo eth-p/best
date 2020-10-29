@@ -50,13 +50,12 @@ commands:
         steps:
             - run:
                   name: "Run tests."
-                  working_directory: tests
                   command: |
                       TEST_SHIM_PATH="<<parameters.shim_directory>>" \
                       TEST_DIR="<<parameters.test_directory>>" \
                       TEST_PWD="<<parameters.data_directory>>" \
                       SNAPSHOT_DIR="<<parameters.snapshot_directory>>" \
-                      "../bin/best.sh" --verbose --strict --snapshot:show
+                      "./test.sh"
 
 jobs:
     test:
