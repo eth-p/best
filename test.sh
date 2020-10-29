@@ -6,6 +6,7 @@
 # Issues:     https://github.com/eth-p/best/issues
 # ----------------------------------------------------------------------------------------------------------------------
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${HERE}/lib/opt.sh"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Test Environment:
@@ -23,7 +24,30 @@ export TEST_SHIM_PATH="${HERE}/tests/${TEST_SHIM_PATH:-shim}"
 export SNAPSHOT_DIR="${HERE}/tests/${TEST_SHIM_PATH:-test-snapshots}"
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Options:
+# ----------------------------------------------------------------------------------------------------------------------
+OPT_ARGV=()
+SHIFTOPT_SHORT_OPTIONS="PASS"
+while shiftopt; do
+	case "$OPT" in
+	-S|--system-path-only) export PATH="/bin:/sbin:/usr/bin:/usr/sbin"; TEST_ENV_PATH="/bin:/sbin:/usr/bin:/usr/sbin" ;;
+	*)
+		if [[ "$OPT_VAL" ]]; then OPT_ARGV+=("${OPT}=${OPT_VAL}")
+		                     else OPT_ARGV+=("$OPT")
+		fi ;;
+	esac
+done
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Initialize:
+# ----------------------------------------------------------------------------------------------------------------------
+if ! [[ -d "${HERE}/tests/test" ]]; then
+	git submodule init 'tests'
+	git submodule update
+fi
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Main:
 # ----------------------------------------------------------------------------------------------------------------------
-"bin/best.sh" --verbose --strict --snapshot:show
+"bin/best.sh" --verbose --strict --snapshot:show "${OPT_ARGV[@]}"
 exit $?
