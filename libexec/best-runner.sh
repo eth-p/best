@@ -256,7 +256,7 @@ __best_runner_main() {
 		__best_ipc_send_executing_message "$command" "$args" 3>&1
 	fi
 
-	__best_cmd_"${command}" "$args" 3>&1
+	__best_cmd_"${command}" "$args" 3>&1 <<< ""  # We give it an empty STDIN to prevent tests from eating IPC commands.
 	return 0
 }
 
