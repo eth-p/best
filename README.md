@@ -41,10 +41,10 @@ bin/best.sh [options] [test...]
 | Variable           | Description                                                  | Default          |
 | ------------------ | ------------------------------------------------------------ | ---------------- |
 | `$BEST_BASH`       | A path to the version of Bash to execute tests with.         |                  |
-| `$BEST_ENV_TMPDIR` | The value of `$TMPDIR` inside the testing environment.       | Inherited        |
-| `$BEST_ENV_PATH`   | The value of `$PATH` inside the testing environment.         | Inherited        |
-| `$BEST_ENV_HOME`   | The value of `$HOME` inside the testing environment.         | Inherited        |
-| `$BEST_ENV_TERM`   | The value of `$TERM` inside the testing environment.         | `xterm-color`    |
+| `$TEST_ENV_TMPDIR` | The value of `$TMPDIR` inside the testing environment.       | Inherited        |
+| `$TEST_ENV_PATH`   | The value of `$PATH` inside the testing environment.         | Inherited        |
+| `$TEST_ENV_HOME`   | The value of `$HOME` inside the testing environment.         | Inherited        |
+| `$TEST_ENV_TERM`   | The value of `$TERM` inside the testing environment.         | `xterm-color`    |
 | `$TEST_LIB_PREFIX` | A variable that prepends a sequence to the test functions. This can be used to prevent function name conflicts with `best` and the scripts that it's testing. | None             |
 | `$TEST_SHIM_PATH`  | The path to the shims loadable by `use_shim`.                | None             |
 | `$TEST_DIR`        | The directory where test suites are stored.                  | `$PWD/test`      |
