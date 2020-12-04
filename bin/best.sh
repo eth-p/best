@@ -13,6 +13,7 @@ source "${LIB}/term.sh"
 source "${LIB}/print.sh"
 source "${LIB}/print_util.sh"
 source "${LIB}/opt.sh"
+source "${LIB}/compat.sh"
 
 set -e -o pipefail
 
