@@ -64,6 +64,7 @@ run_suite() {
 	SUITE_FILE="$1"
 	SUITE_NAME="$(suite_name "$SUITE_FILE")"
 	REPORT_SUITE="$SUITE_FILE"
+	REPORT_PRINT_STARTED=false
 	JOBS_INITIALIZED=0
 
 	TOTAL_PASSED=0
@@ -71,7 +72,10 @@ run_suite() {
 	TOTAL_SKIPPED=0
 	TOTAL_IGNORED=0
 
-	show_suite_name "$SUITE_NAME"
+	if [[ "$PORCELAIN" == true ]]; then
+		REPORT_PRINT_STARTED=true
+		show_suite_name "$SUITE_NAME"
+	fi
 
 	# File descriptor table:
 	#   FD6: intermediate for writing to STDOUT
@@ -114,6 +118,15 @@ run_suite() {
 	fi
 
 	TOTAL_ALL="$((TOTAL_PASSED + TOTAL_FAILED + TOTAL_SKIPPED))"
+
+	# Add test counts to aggregated totals.
+	AGGREGATED_TOTAL_PASSED="$((AGGREGATED_TOTAL_PASSED + TOTAL_PASSED))"
+	AGGREGATED_TOTAL_FAILED="$((AGGREGATED_TOTAL_FAILED + TOTAL_FAILED))"
+	AGGREGATED_TOTAL_FAILED="$((AGGREGATED_TOTAL_SKIPPED + TOTAL_SKIPPED))"
+	AGGREGATED_TOTAL_IGNORED="$((AGGREGATED_TOTAL_IGNORED + TOTAL_IGNORED))"
+	AGGREGATED_TOTAL_ALL="$((AGGREGATED_TOTAL_ALL + TOTAL_ALL))"
+
+	# Show the suite totals.
 	show_suite_totals
 }
 
@@ -156,7 +169,7 @@ parse_suite_report() {
 		if [[ -f "$REPORT_OUTPUT_STDERR" ]]; then rm "$REPORT_OUTPUT_STDERR"; fi
 	done
 
-	if [[ "$RUNNER_CRASH" = true ]]; then
+	if [[ "$RUNNER_CRASH" == true ]]; then
 		printc "%{ERROR}FATAL ERROR: The test runner has crashed.%{CLEAR}\n"
 		printc "%s\n" "${RUNNER_CRASH_MESSAGES[@]}"
 		return 1
@@ -171,22 +184,32 @@ __best_runner_report:parse:IGNORE() {
 # Functions: Reporting
 # ----------------------------------------------------------------------------------------------------------------------
 
+ensure_show_suite_name() {
+	if ! "$REPORT_PRINT_STARTED"; then
+		REPORT_PRINT_STARTED=true
+		show_suite_name "$SUITE_NAME"
+	fi
+}
+
 show_suite_name() {
 	print_header "Test Suite: $1"
 }
 
 show_passed_test() {
+	ensure_show_suite_name
 	printc "[${RESULT_COLOR}PASS%{CLEAR}] %-20s%s\n" "$(test_name "$REPORT_TEST")" "$REPORT_DECORATION_STRING"
 	show_test_outputs
 }
 
 show_failed_test() {
+	ensure_show_suite_name
 	printc "[${RESULT_COLOR}FAIL%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 	show_test_outputs
 }
 
 show_skipped_test() {
+	ensure_show_suite_name
 	printc "[${RESULT_COLOR}SKIP%{CLEAR}] %-20s" "$(test_name "$REPORT_TEST")"
 	show_report_messages
 	show_test_outputs
@@ -204,14 +227,14 @@ show_report_messages() {
 }
 
 show_test_outputs() {
-	if [[ "$REPORT_RESULT" = "FAIL" ]]; then
-		if [[ "$SNAPSHOT_SHOW" = true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+	if [[ "$REPORT_RESULT" == "FAIL" ]]; then
+		if [[ "$SNAPSHOT_SHOW" == true || "$VERBOSE" == true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
 			show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 		fi
 	fi
 
-	if [[ "$REPORT_RESULT" = "PASS" && "$VERBOSE_EVERYTHING" = true ]] \
-	|| [[ "$REPORT_RESULT" != "PASS" && "$VERBOSE" = true ]]; then
+	if [[ "$REPORT_RESULT" == "PASS" && "$VERBOSE_EVERYTHING" == true ]] \
+		|| [[ "$REPORT_RESULT" != "PASS" && "$VERBOSE" == true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -232,11 +255,21 @@ show_snapshot_diff() {
 }
 
 show_suite_totals() {
+	# If no tests were failed, and we're using --compact, don't print anything at all.
+	if [[ "$TOTAL_FAILED" -eq 0 && "$COMPACT" == "true" ]]; then
+		return
+	fi
+
+	# Print the suite name if it hasn't been printed already.
+	ensure_show_suite_name
+
+	# Print a warning if no tests were run.
 	if [[ "$TOTAL_ALL" -eq 0 ]]; then
 		printc "${nl}%{WARNING}NO TESTS WERE RUN.%{CLEAR}\n"
 		return
 	fi
 
+	# Print the suite summary.
 	printc "\nTotals:\n"
 	printc "    PASS: %{RESULT_PASS}%d%{CLEAR} / %d\n" "$TOTAL_PASSED" "$TOTAL_ALL"
 	printc "    FAIL: %{RESULT_FAIL}%d%{CLEAR} / %d\n" "$TOTAL_FAILED" "$TOTAL_ALL"
@@ -263,7 +296,7 @@ show_suite_totals() {
 	fi
 }
 
-if [[ "$DEBUG" = true ]]; then
+if [[ "$DEBUG" == true ]]; then
 	__best_runner_report:parse() {
 		printvd "ipc message: %s %s\n" "$1" "$2"
 		__best_runner_report:do_parse "$@"
@@ -271,11 +304,44 @@ if [[ "$DEBUG" = true ]]; then
 	}
 fi
 
+show_aggregated_totals() {
+	:
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Overrides: Compact
+# ----------------------------------------------------------------------------------------------------------------------
+if "$COMPACT"; then
+	show_passed_test() {
+		:
+	}
+
+	if ! "$STRICT"; then
+		show_skipped_test() {
+			:
+		}
+	fi
+	
+	show_aggregated_totals() {
+		if [[ "$AGGREGATED_TOTAL_IGNORED" -gt 0 ]]; then
+			printc "THERE WERE %{WARNING}%d%{CLEAR} TESTS FILTERED OUT.\n" "$AGGREGATED_TOTAL_IGNORED"
+		fi
+		
+		if [[ "$AGGREGATED_TOTAL_ALL" -eq 0 ]]; then
+			printc "%{WARNING}NO TESTS WERE RUN.%{CLEAR}\n"
+			return
+		fi
+	
+		if [[ "$AGGREGATED_TOTAL_ALL" -eq "$AGGREGATED_TOTAL_PASSED" ]]; then
+			printc "ALL %{RESULT_PASS}%d%{CLEAR} TESTS PASSED.\n" "$AGGREGATED_TOTAL_PASSED"
+		fi
+	}
+fi
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" = true ]]; then
+if [[ "$PORCELAIN" == true ]]; then
 	_show_test() {
 		printf "result %s %s" "${SUITE_NAME}:$(test_name "$REPORT_TEST")" "$1"
 		printf " %s" "duration=${REPORT_DURATION}" "messages=${#REPORT_RESULT_MESSAGES[@]}"
@@ -326,13 +392,21 @@ if [[ "$PORCELAIN" = true ]]; then
 	show_suite_totals() {
 		:
 	}
+	
+	show_aggregated_totals() {
+		:
+	}
 
 fi
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Init:
 # ----------------------------------------------------------------------------------------------------------------------
+AGGREGATED_TOTAL_PASSED=0
+AGGREGATED_TOTAL_FAILED=0
+AGGREGATED_TOTAL_FAILED=0
+AGGREGATED_TOTAL_IGNORED=0
+AGGREGATED_TOTAL_ALL=0
 
 # Determine which commands to use for printing files.
 #   If `bat` is installed, this will prefer using bat.
@@ -340,8 +414,8 @@ fi
 OUTPUT_PRINTER=(cat)
 DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
-	OUTPUT_PRINTER=(bat "--paging=never" "--decorations=always" "--style=numbers" \
-		"--color=$(if [[ "$COLOR" == true ]]; then echo "always"; else echo "never"; fi)" \
+	OUTPUT_PRINTER=(bat "--paging=never" "--decorations=always" "--style=numbers"
+		"--color=$(if [[ "$COLOR" == true ]]; then echo "always"; else echo "never"; fi)"
 		"--terminal-width=$(($(term_width) - 8))"
 	)
 
@@ -349,10 +423,10 @@ if command -v bat &> /dev/null; then
 fi
 
 # If -j is unspecified, determine the number of cores to use.
-if [[ "$PARALLEL" = "auto" ]]; then
-	PARALLEL="$(getconf _NPROCESSORS_ONLN 2>/dev/null)"
+if [[ "$PARALLEL" == "auto" ]]; then
+	PARALLEL="$(getconf _NPROCESSORS_ONLN 2> /dev/null)"
 	printvd "detected system core count as '%s'\n" "$PARALLEL"
-	if ! [[ "$PARALLEL" -gt 0 ]] 2>/dev/null; then
+	if ! [[ "$PARALLEL" -gt 0 ]] 2> /dev/null; then
 		printvd "detected system core count is invalid. falling back to 1\n"
 		PARALLEL=1 # If it can't be parsed as a number, fall back to one parallel test.
 	fi
@@ -372,4 +446,8 @@ for suite in "${SUITE_FILES[@]}"; do
 	run_suite "$suite"
 done
 
+show_aggregated_totals
+
 exit $COMMAND_EXIT
+
+}

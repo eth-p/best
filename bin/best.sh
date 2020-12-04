@@ -71,6 +71,7 @@ VERBOSE_EVERYTHING=false
 PORCELAIN=false
 DEBUG=false
 STRICT=false
+COMPACT=false
 PARALLEL="auto"
 
 SUBCOMMAND='run'
@@ -85,6 +86,7 @@ while shiftopt; do
 		'--VERBOSE')           VERBOSE=true; VERBOSE_EVERYTHING=true ;;
 		'--debug')             VERBOSE=true; DEBUG=true ;;
 		'--strict')            STRICT=true ;;
+		'--failed')            COMPACT=true ;;
 		'--porcelain')         PORCELAIN="${OPT_VAL:-true}" ;;
 		'--list')              SUBCOMMAND='list' ;;
 		'--list-suites')       SUBCOMMAND='list-suites' ;;
