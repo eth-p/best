@@ -5,12 +5,13 @@
 # Issues:     https://github.com/eth-p/best/issues
 # ----------------------------------------------------------------------------------------------------------------------
 
-printf "best %s\n\n" "$(cat "${ROOT}/version.txt")"
-
-printf "Copyright (C) %s-%s eth-p\n" 2019 2020
+printf "best %s\n" "$(cat "${ROOT}/version.txt")"
 printf "https://github.com/eth-p/best/\n"
 
 if [[ -f "${ROOT}/LICENSE.md" ]]; then
 	printf "\n"
 	cat "${ROOT}/LICENSE.md"	
+else
+	printf "Copyright (C) %s-%s eth-p\n" 2019 2020
+	printf "MIT License"
 fi
