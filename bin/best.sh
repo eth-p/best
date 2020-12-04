@@ -94,6 +94,7 @@ while shiftopt; do
 		'--snapshot:generate') SNAPSHOT_GENERATE=true ;;
 		'--snapshot:show')     SNAPSHOT_SHOW=true ;;
 		'--snapshot:skip')     SNAPSHOT_SKIP=true ;;
+		'--version')           SUBCOMMAND='version' ;;
 		--)                    OPT_ARGV+=("$@"); break ;;
 		-*)                    fatal_error "unknown option '%s'" "$OPT" ;;
 		*)                     OPT_ARGV+=("$OPT") ;;
