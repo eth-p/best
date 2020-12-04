@@ -66,7 +66,7 @@ test:my_test() {
     description 'This is your first test.'
 
     assert_equal 1 1
-    assert [[ "a" = "b" ]]
+    assert [ "a" = "b" ]
 }
 ```
 
@@ -100,7 +100,7 @@ test:my_test() {
 
 ### Setup / Teardown
 
-The functions named `setup` and `teardown` will be used for test suite setup and teardown.
+The functions named `setup` and `teardown` are used for test suite setup and teardown.
 The former will be called when the suite is loaded, and the latter will be called after all tests are run.
 
 ```bash
@@ -116,4 +116,3 @@ test:check_setup() {
     assert_equal "$MY_VAR" 3
 }
 ```
-
