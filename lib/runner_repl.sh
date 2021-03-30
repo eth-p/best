@@ -143,7 +143,7 @@ __best_cmd_HELP() {
 			if [[ -z "$helptext" ]]; then
 				printc "%{LIST_ITEM}%s%{CLEAR}\n" "$command"
 			elif [[ "$helptext" != "!HIDE" ]]; then
-				printc "%{LIST_ITEM}%-10s %{LIST_ITEM_DESCRIPTION}%s%{CLEAR}\n" "$command" "$helptext"
+				printc "%{LIST_ITEM}%-10s -- %{LIST_ITEM_DESCRIPTION}%s%{CLEAR}\n" "$command" "$helptext"
 			fi
 		fi
 	done < <(declare -F | grep '^declare -f __best_cmd_' | sed 's/^declare -f __best_cmd_//')
