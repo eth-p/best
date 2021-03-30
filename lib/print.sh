@@ -67,7 +67,9 @@ printc_init << "END"
 
 	SEPARATOR \x1B[0;2;37m
 	HEADER    \x1B[37m
-	LIST_ITEM \x1B[0m
+	
+	LIST_ITEM             \x1B[0m
+	LIST_ITEM_DESCRIPTION \x1B[0;2m
 
 	SUITE_NAME        \x1B[35m
 	TEST_NAME         \x1B[34m

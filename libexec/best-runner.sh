@@ -149,7 +149,7 @@ __best_cmd_LOAD() {
 }
 
 # REPL: TEST
-# Execute a test function.
+# Executes a test function.
 #
 # Arguments:
 #     $1  [string]    -- The function to execute.
@@ -219,7 +219,7 @@ __best_cmd_ASYNC_WAIT_ALL() {
 }
 
 # REPL: EVAL
-# Evaluate a string.
+# Evaluates a string.
 #
 # Arguments:
 #     $1  [string]    -- The string to evaluate.
