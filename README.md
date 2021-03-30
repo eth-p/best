@@ -33,9 +33,11 @@ bin/best.sh [options] [test...]
 
 **Subcommands:**
 
-| Subcommand | Description                                  |
-| ---------- | -------------------------------------------- |
-| `--list`   | Prints a list of tests in the loaded suites. |
+| Subcommand  | Description                                   |
+| ----------- | --------------------------------------------- |
+| `--list`    | Prints a list of tests in the loaded suites.  |
+| `--version` | Prints the version and exits.                 |
+| `--repl`    | Enters a minimal REPL similar to the IPC API. |
 
 **Environment Variables:**
 
