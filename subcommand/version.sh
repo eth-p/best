@@ -12,6 +12,6 @@ if [[ -f "${ROOT}/LICENSE.md" ]]; then
 	printf "\n"
 	cat "${ROOT}/LICENSE.md"	
 else
-	printf "Copyright (C) %s-%s eth-p\n" 2019 2020
+	printf "Copyright (C) %s-%s eth-p\n" 2019 2021
 	printf "MIT License"
 fi
