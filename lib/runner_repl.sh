@@ -149,6 +149,14 @@ __best_cmd_HELP() {
 	done < <(declare -F | grep '^declare -f __best_cmd_' | sed 's/^declare -f __best_cmd_//')
 }
 
+# REPL: EXIT
+# Exits the REPL.
+__best_cmdhelp_EXIT="Exits the REPL."
+__best_cmd_EXIT() {
+	__best_cmd_CLEANUP 3>&1
+	exit 0
+}
+
 # REPL: SHOW
 # Shows information about the last test.
 #
