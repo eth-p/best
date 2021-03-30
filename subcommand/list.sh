@@ -17,18 +17,11 @@ show_test() {
 	printc "%{CLEAR}\n"
 }
 
-show_suite_name() {
-	print_header "Test Suite: $1"
-}
-
 # shellcheck disable=SC2155
 show_suite() {
 	local suite="$1"
 	local name="$(suite_name "$suite")"
 	SUITE_NAME="${name}"
-
-	# Print the suite name.
-	show_suite_name "$name"
 
 	# Print each test.
 	suite_tests load "$suite"
@@ -47,10 +40,6 @@ show_suite() {
 # ----------------------------------------------------------------------------------------------------------------------
 case "$PORCELAIN" in
 	true) {
-		show_suite_name() {
-			:
-		}
-
 		show_test() {
 			printf "test %s:%s\n" "$SUITE_NAME" "$TEST_NAME"
 			printf "test_suite %s\n" "$SUITE_NAME"
@@ -66,6 +55,7 @@ esac
 # ----------------------------------------------------------------------------------------------------------------------
 # Main:
 # ----------------------------------------------------------------------------------------------------------------------
+print_header "Tests:"
 for suite in "${SUITE_FILES[@]}"; do
 	show_suite "$suite"
 done
