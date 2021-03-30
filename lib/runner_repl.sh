@@ -164,23 +164,37 @@ __best_cmd_EXIT() {
 #     $1  ["STATUS"]    -- The exit code of the last test.
 #     $1  ["STDOUT"]    -- The STDOUT of the last test.
 #     $1  ["STDERR"]    -- The STDERR of the last test.
+#     $1  ["TESTS"]     -- A list of runnable tests.
 #
 __best_cmdhelp_SHOW="Shows information about the last test."
 __best_cmd_SHOW() {
 	local target="$(tr '[:lower:]' '[:upper:]' <<< "$1")"
+	local show=""
 	case "$target" in
-		STATUS) echo "$REPORT_EXIT" ;;
-		STDOUT | OUT | FD1) "${__best_file_printer[@]}" "$REPORT_OUTPUT_STDOUT" ;;
-		STDERR | ERR | FD12) "${__best_file_printer[@]}" "$REPORT_OUTPUT_STDERR" ;;
+		STATUS) show="REPORT_EXIT" ;;
+		STDOUT | OUT | FD1) show="REPORT_OUTPUT_STDOUT" ;;
+		STDERR | ERR | FD2) show="REPORT_OUTPUT_STDERR" ;;
 		TESTS) {
 			declare -F | grep '^declare -f test[A-Z_:]' | sed 's/^declare -f //'
+			return 0
 		} ;;
 		''|*) {
 			printc "SHOW TESTS  -- Show the list of runnable tests.\n"
 			printc "SHOW STATUS -- Show the exit code of the last test.\n"
 			printc "SHOW OUT    -- Show the STDOUT contents of the last test.\n"
 			printc "SHOW ERR    -- Show the STDERR contents of the last test.\n"
+			return 0
 		} ;;
+	esac
+	
+	if [[ -z "$REPORT_EXIT" ]]; then
+		__best_runner_message_error "No test has been run yet."
+		return 1
+	fi
+	
+	case "$show" in
+		REPORT_EXIT) echo "${!show}" ;;
+		*)           "${__best_file_printer[@]}" "${!show}" ;;
 	esac
 }
 
