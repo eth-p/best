@@ -22,7 +22,28 @@
 		# shellcheck disable=SC2059
 		__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "$(printf "$@")"
 	fi
-	exit 255
+	exit 1
+}
+
+# Causes the test to send a fail result, but continue running.
+#
+# Arguments:
+#     $1  [string]    -- The failure reason (printf pattern).
+#     ... [string]    -- The pattern arguments.
+#
+# Example:
+#
+#     fail "Could not find '%s'" "bash"
+#
+:PREFIX:deferred_fail() {
+	local message="Test called 'deferred_fail' function."
+	if [[ $# -gt 0 ]]; then
+		# shellcheck disable=SC2059
+		message="$(printf "${@:1}")"
+	fi
+	
+	__best_ipc_send_test_result "FAIL"
+	__best_ipc_send_test_result_message "$message"
 }
 
 # Causes the test to be skipped.

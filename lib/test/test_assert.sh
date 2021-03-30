@@ -26,10 +26,8 @@
 		fi
 	fi
 
-	__best_ipc_send_test_result "FAIL"
-	__best_ipc_send_test_result_message "Assertion failed: %s"
-	__best_ipc_send_test_result_message_data "$*"
-	exit 1
+	__best_test_abort "$__BEST_RESULT_ENUM_FAIL" "Assertion failed: %s" "$*"
+	exit 255
 }
 
 # Asserts one value equals another value.
