@@ -26,9 +26,7 @@
 		fi
 	fi
 
-	__best_ipc_send_test_result "FAIL"
-	__best_ipc_send_test_result_message "Expectation failed: %s"
-	__best_ipc_send_test_result_message_data "$*"
+	__best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expectation failed: %s" "$*"
 }
 
 # Expects one value equals another value.
@@ -36,14 +34,21 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_equal 2 2
 #
 :PREFIX:expect_equal() {
-	:PREFIX:expect [ "$1" = "$2" ]
-	return $?
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" = "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" = "$2" ]
+		return $?
+	fi
 }
 
 # Expects one value does not equal another value.
@@ -51,14 +56,21 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_not_equal 1 2
 #
 :PREFIX:expect_not_equal() {
-	:PREFIX:expect [ "$1" != "$2" ]
-	return $?
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" != "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" != "$2" ]
+		return $?
+	fi
 }
 
 # Expects one value is less than the other value.
@@ -66,14 +78,21 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_less 1 2
 #
 :PREFIX:expect_less() {
-	:PREFIX:expect [ "$1" -lt "$2" ]
-	return $?
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" -lt "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" -lt "$2" ]
+		return $?
+	fi
 }
 
 # Expects one value is less than or equal to the other value.
@@ -81,14 +100,21 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_less_or_equal 2 2
 #
 :PREFIX:expect_less_or_equal() {
-	:PREFIX:expect [ "$1" -le "$2" ]
-	return $?
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" -le "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" -le "$2" ]
+		return $?
+	fi
 }
 
 # Expects one value is greater than the other value.
@@ -96,14 +122,21 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_greater 5 2
 #
 :PREFIX:expect_greater() {
-	:PREFIX:expect [ "$1" -gt "$2" ]
-	return $?
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" -gt "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" -gt "$2" ]
+		return $?
+	fi
 }
 
 # Expects one value is greater than or equal to the other value.
@@ -111,12 +144,20 @@
 # Arguments:
 #     $1  [string]    -- The first value.
 #     $2  [string]    -- The second value.
+#     $3  {"--"}      -- An optional specifier that enables custom failure messages.
+#     $4  {string}    -- The custom failure message pattern, with "%s" for the values provided.
 #
 # Example:
 #
 #     expect_greater_or_equal 2 2
 #
 :PREFIX:expect_greater_or_equal() {
-	:PREFIX:expect [ "$1" -ge "$2" ]
+	if [[ "$3" = "--" && -n "$4" ]]; then
+		[[ "$1" -ge "$2" ]] || __best_test_set_result "$__BEST_RESULT_ENUM_FAIL" "Expected $4" "$1" "$2"
+		return $?
+	else
+		:PREFIX:expect [ "$1" -ge "$2" ]
+		return $?
+	fi
 	return $?
 }
