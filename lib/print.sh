@@ -37,7 +37,7 @@ printc_init() {
 			local name
 			local ansi
 			while read -r name ansi; do
-				if [[ -z "${name}" && -z "${ansi}" ]] || [[ "${name:0:1}" == "#" ]]; then
+				if [[ -z "${name}" && -z "${ansi}" ]] || [[ "${name:0:1}" = "#" ]]; then
 					continue
 				fi
 

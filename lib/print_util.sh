@@ -15,7 +15,7 @@
 #     printv "%{RED}This is red %s.%{CLEAR}\n" "text"
 #
 printv() {
-	if [[ "$VERBOSE" == true || "$VERBOSE" == 1 ]]; then
+	if [[ "$VERBOSE" = true || "$VERBOSE" = 1 ]]; then
 		printc "$@"
 	fi
 }
@@ -31,7 +31,7 @@ printv() {
 #     printvd "%{RED}This is red %s.%{CLEAR}\n" "text"
 #
 printvd() {
-	if [[ "$VERBOSE" == true || "$VERBOSE" == 1 ]] && [[ "$DEBUG" == true || "$DEBUG" == 1 ]]; then
+	if [[ "$VERBOSE" = true || "$VERBOSE" = 1 ]] && [[ "$DEBUG" = true || "$DEBUG" = 1 ]]; then
 		printc "%{DEBUG}[DEBUG] %{CLEAR}$1" "${@:2}" 1>&2
 	fi
 }

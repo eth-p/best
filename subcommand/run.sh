@@ -49,7 +49,7 @@ run_test_maybe() {
 	local key
 	for key in "${!RUN_TESTS[@]}"; do
 		local test="${RUN_TESTS[$key]}"
-		if [[ "$TEST_ID" == "${RUN_TESTPREFIX}${test}" || "$TEST_ID" == "${test}" ]]; then
+		if [[ "$TEST_ID" = "${RUN_TESTPREFIX}${test}" || "$TEST_ID" = "${test}" ]]; then
 			RUN_TESTS=("${RUN_TESTS[@]/$key/}")
 			run_test
 			return $?
@@ -72,7 +72,7 @@ run_suite() {
 	TOTAL_SKIPPED=0
 	TOTAL_IGNORED=0
 
-	if [[ "$PORCELAIN" == true ]]; then
+	if [[ "$PORCELAIN" = true ]]; then
 		REPORT_PRINT_STARTED=true
 		show_suite_name "$SUITE_NAME"
 	fi
@@ -169,7 +169,7 @@ parse_suite_report() {
 		if [[ -f "$REPORT_OUTPUT_STDERR" ]]; then rm "$REPORT_OUTPUT_STDERR"; fi
 	done
 
-	if [[ "$RUNNER_CRASH" == true ]]; then
+	if [[ "$RUNNER_CRASH" = true ]]; then
 		printc "%{ERROR}FATAL ERROR: The test runner has crashed.%{CLEAR}\n"
 		printc "%s\n" "${RUNNER_CRASH_MESSAGES[@]}"
 		return 1
@@ -227,14 +227,14 @@ show_report_messages() {
 }
 
 show_test_outputs() {
-	if [[ "$REPORT_RESULT" == "FAIL" ]]; then
-		if [[ "$SNAPSHOT_SHOW" == true || "$VERBOSE" == true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
+	if [[ "$REPORT_RESULT" = "FAIL" ]]; then
+		if [[ "$SNAPSHOT_SHOW" = true || "$VERBOSE" = true ]] && [[ -n "$REPORT_SNAPSHOT_DIFF" ]]; then
 			show_snapshot_diff "" "$REPORT_SNAPSHOT_DIFF"
 		fi
 	fi
 
-	if [[ "$REPORT_RESULT" == "PASS" && "$VERBOSE_EVERYTHING" == true ]] \
-		|| [[ "$REPORT_RESULT" != "PASS" && "$VERBOSE" == true ]]; then
+	if [[ "$REPORT_RESULT" = "PASS" && "$VERBOSE_EVERYTHING" = true ]] \
+		|| [[ "$REPORT_RESULT" != "PASS" && "$VERBOSE" = true ]]; then
 		show_test_output "STDOUT" "$REPORT_OUTPUT_STDOUT"
 		show_test_output "STDERR" "$REPORT_OUTPUT_STDERR"
 	fi
@@ -256,7 +256,7 @@ show_snapshot_diff() {
 
 show_suite_totals() {
 	# If no tests were failed, and we're using --compact, don't print anything at all.
-	if [[ "$TOTAL_FAILED" -eq 0 && "$COMPACT" == "true" ]]; then
+	if [[ "$TOTAL_FAILED" -eq 0 && "$COMPACT" = "true" ]]; then
 		return
 	fi
 
@@ -296,7 +296,7 @@ show_suite_totals() {
 	fi
 }
 
-if [[ "$DEBUG" == true ]]; then
+if [[ "$DEBUG" = true ]]; then
 	__best_runner_report:parse() {
 		printvd "ipc message: %s %s\n" "$1" "$2"
 		__best_runner_report:do_parse "$@"
@@ -341,7 +341,7 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 # Overrides: Porcelain
 # ----------------------------------------------------------------------------------------------------------------------
-if [[ "$PORCELAIN" == true ]]; then
+if [[ "$PORCELAIN" = true ]]; then
 	_show_test() {
 		printf "result %s %s" "${SUITE_NAME}:$(test_name "$REPORT_TEST")" "$1"
 		printf " %s" "duration=${REPORT_DURATION}" "messages=${#REPORT_RESULT_MESSAGES[@]}"
@@ -415,7 +415,7 @@ OUTPUT_PRINTER=(cat)
 DIFF_PRINTER=("${OUTPUT_PRINTER[@]}")
 if command -v bat &> /dev/null; then
 	OUTPUT_PRINTER=(bat "--paging=never" "--decorations=always" "--style=numbers"
-		"--color=$(if [[ "$COLOR" == true ]]; then echo "always"; else echo "never"; fi)"
+		"--color=$(if [[ "$COLOR" = true ]]; then echo "always"; else echo "never"; fi)"
 		"--terminal-width=$(($(term_width) - 8))"
 	)
 
@@ -423,7 +423,7 @@ if command -v bat &> /dev/null; then
 fi
 
 # If -j is unspecified, determine the number of cores to use.
-if [[ "$PARALLEL" == "auto" ]]; then
+if [[ "$PARALLEL" = "auto" ]]; then
 	PARALLEL="$(getconf _NPROCESSORS_ONLN 2> /dev/null)"
 	printvd "detected system core count as '%s'\n" "$PARALLEL"
 	if ! [[ "$PARALLEL" -gt 0 ]] 2> /dev/null; then
