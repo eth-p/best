@@ -41,7 +41,7 @@ show_suite() {
 case "$PORCELAIN" in
 	true) {
 		show_test() {
-			printf "test %s:%s\n" "$SUITE_NAME" "$TEST_NAME"
+			printf "test %s:%s\n" "$SUITE_NAME" "$(test_name "$TEST_NAME")"
 			printf "test_suite %s\n" "$SUITE_NAME"
 			printf "test_name %s\n" "$TEST_NAME"
 			printf "test_description %s\n" "$TEST_DESCRIPTION"
