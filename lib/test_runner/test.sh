@@ -17,16 +17,19 @@
 #     __best_test_set_result SKIP "The test was skipped."
 #
 __best_test_set_result() {
-	if [[ -n "$__best_test_status__result" ]]; then
-		return 0
-	fi
-
+	# If the reason is downgrading, return early.
+	case "$__best_test_status__result->$1" in
+		"$__BEST_RESULT_ENUM_FAIL->$__BEST_RESULT_ENUM_SKIP") return 0 ;;
+		"$__BEST_RESULT_ENUM_FAIL->$__BEST_RESULT_ENUM_PASS") return 0 ;;
+		"$__BEST_RESULT_ENUM_SKIP->$__BEST_RESULT_ENUM_PASS") return 0 ;;
+	esac
+	
 	# Set the result variable.
 	__best_test_status__result="$1"
-
+	
 	# Send the result IPC message.
 	__best_ipc_send_test_result "$1"
-	
+
 	# Send the result reason IPC message.
 	if [[ $# -gt 1 ]]; then
 		__best_ipc_send_test_result_message "$2"
