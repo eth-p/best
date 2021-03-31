@@ -261,11 +261,16 @@ show_suite_totals() {
 	fi
 
 	# Print the suite name if it hasn't been printed already.
-	ensure_show_suite_name
+	if ! "$IS_FILTERED"; then
+		ensure_show_suite_name
+	fi
 
 	# Print a warning if no tests were run.
 	if [[ "$TOTAL_ALL" -eq 0 ]]; then
-		printc "${nl}%{WARNING}NO TESTS WERE RUN.%{CLEAR}\n"
+		SKIPPED_SUITES+=("$SUITE_NAME")
+		if ! "$IS_FILTERED"; then
+			printc "${nl}%{WARNING}NO TESTS WERE RUN.%{CLEAR}\n"
+		fi
 		return
 	fi
 
@@ -305,7 +310,24 @@ if [[ "$DEBUG" = true ]]; then
 fi
 
 show_aggregated_totals() {
-	:
+	if ! "$IS_FILTERED"; then
+		return
+	fi
+	
+	if [[ $((AGGREGATED_TOTAL_PASSED + AGGREGATED_TOTAL_FAILED)) -gt 0 ]]; then
+		print_separator
+	fi
+	
+	# If no tests were run, show a warning.
+	if [[ "$AGGREGATED_TOTAL_ALL" -eq 0 ]]; then
+		printc "%{WARNING}WARNING: NO TESTS WERE RUN.%{CLEAR}\n"
+	fi
+	
+	# If any suites were filtered, show a count of all skipped test suites.
+	if [[ "${#SKIPPED_SUITES[@]}" -gt 0 ]]; then
+		printc "NOTE: THERE WERE %{WARNING}%d%{CLEAR} TEST SUITES FILTERED OUT." "${#SKIPPED_SUITES[@]}"
+	fi
+	
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -404,9 +426,10 @@ fi
 # ----------------------------------------------------------------------------------------------------------------------
 AGGREGATED_TOTAL_PASSED=0
 AGGREGATED_TOTAL_FAILED=0
-AGGREGATED_TOTAL_FAILED=0
 AGGREGATED_TOTAL_IGNORED=0
 AGGREGATED_TOTAL_ALL=0
+SKIPPED_SUITES=()
+IS_FILTERED=false
 
 # Determine which commands to use for printing files.
 #   If `bat` is installed, this will prefer using bat.
@@ -441,13 +464,14 @@ if [[ "${#SUITE_FILES[@]}" -eq 1 ]]; then
 	RUN_TESTPREFIX="$(suite_name "${SUITE_FILES[0]}"):"
 fi
 
+if [[ "${#RUN_TESTS[@]}" -gt 0 ]]; then
+	IS_FILTERED=true	
+fi
+
 COMMAND_EXIT=0
 for suite in "${SUITE_FILES[@]}"; do
 	run_suite "$suite"
 done
 
 show_aggregated_totals
-
 exit $COMMAND_EXIT
-
-}
