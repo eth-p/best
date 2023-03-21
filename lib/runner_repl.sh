@@ -11,6 +11,8 @@
 
 __best_repl_count=0
 __best_repl_padding=3
+__best_repl_last_command=
+__best_repl_last_command_args=()
 __best_file_printer=(cat)
 __best_cleanup_files=()
 
@@ -36,6 +38,14 @@ __best_runner_main() {
 
 	# Run the command.
 	command_upper="$(tr '[:lower:]' '[:upper:]' <<< "$command")"
+	if [[ "$command_upper" = "!!" ]]; then
+		command_upper="${__best_repl_last_command}"
+		args=("${__best_repl_last_command_args[@]}")
+	else
+		__best_repl_last_command="$command_upper"
+		__best_repl_last_command_args=("${args[@]}")
+	fi
+
 	if ! [[ "$(type -t __best_cmd_"${command_upper}" 2>&1)" =~ function$ ]]; then
 		__best_runner_message_error "unknown command"
 	else
