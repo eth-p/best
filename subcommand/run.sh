@@ -447,7 +447,7 @@ fi
 
 # If -j is unspecified, determine the number of cores to use.
 if [[ "$PARALLEL" = "auto" ]]; then
-	PARALLEL="$(getconf _NPROCESSORS_ONLN 2> /dev/null)"
+	PARALLEL="$(getconf _NPROCESSORS_ONLN 2>/dev/null || { echo "1"; exit 1; })" || printvd "unable to detect system core count"
 	printvd "detected system core count as '%s'\n" "$PARALLEL"
 	if ! [[ "$PARALLEL" -gt 0 ]] 2> /dev/null; then
 		printvd "detected system core count is invalid. falling back to 1\n"
