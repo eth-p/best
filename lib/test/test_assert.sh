@@ -17,6 +17,7 @@
 #
 :PREFIX:assert() {
 	if [[ "$1" = "!" ]]; then
+		shift
 		if ! "$@" &>/dev/null; then
 			return 0
 		fi
